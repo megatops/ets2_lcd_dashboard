@@ -7,8 +7,13 @@ ETS2 LCD dashboard is a client of [ETS2 Telemetry Web Server](https://github.com
 The dashboard can display:
 
 - Estimated distance and time,
-- Current speed, cruise control speed and speed limit,
-- Fuel and estimated fuel distance.
+- Current speed, cruise control speed and speed limit (kph/mph),
+- Fuel and estimated fuel distance,
+- Time and date (sync with NTP).
+
+Check this video to see how it looks in action:
+
+[![video](https://img.youtube.com/vi/SX45oxnS2IU/0.jpg)](https://www.youtube.com/watch?v=SX45oxnS2IU)
 
 ## Hardware
 
@@ -42,6 +47,21 @@ static const char *PASSWORD = "YOUR WIFI PASSWORD";
 static const char *ETS_API = "http://YOUR_PC_IP:25555/api/ets2/telemetry";
 ```
 
+Setup NTP server, your local time zone and daylight saving time if you enabled the clock feature (need Internet access):
+
+```c
+// Clock settings
+static const bool CLOCK_ENABLE = true;           // false to disable the clock feature
+static const char *NTP_SERVER = "pool.ntp.org";  // "ntp.ntsc.ac.cn" for mainland China
+static const int TIME_ZONE = 8 * 60;             // local time zone in minutes
+static const bool DST = false;                   // daylight saving time
+```
+
+> ℹ The clock will sync with NTP server every hour to keep accurate time. Choose the fastest server to speedup the initial sync:
+>
+> - Mainland China: `ntp.ntsc.ac.cn`
+> - Other regions: `pool.ntp.org`
+
 In most case, the default I2C address of LCD 2004 should be `0x27`. But if you cannot get the LCD work, try to change this address to `0x3F` (PCF8574AT).
 
 ```c
@@ -60,14 +80,11 @@ The project is an Arduino IDE Sketch. You will need to add ESP32-C3 board suppor
 Then install below libraries:
 
 - `ArduinHttpClient` by Arduino
-
 - `Arduino_JSON` by Arduino
-
 - `LiquidCrystal I2C` by Frank de Brabander
-
-- `BigFont02_I2C` by Harald Coeleveld
-
-  > ⚠ When installing `BigFont02_I2C`, it may occur "Library 'LiquidCrystal_I2C' not found" error. You can download it from: https://www.arduino.cc/reference/en/libraries/bigfont02_i2c/, then refer [this link](https://learn.adafruit.com/adafruit-all-about-arduino-libraries-install-use/how-to-install-a-library) to install it manually.
+- `NTPClient` by Fabrice Weinberg
+- `SoftwareTimer` by ILoveMemes
+- `Time` by Michael Margolis
 
 To build and upload the firmware:
 
@@ -81,23 +98,14 @@ To build and upload the firmware:
 
 It is highly recommended to open the "Serial Monitor" in Arduino IDE for troubleshooting during the first run.
 
-## Big Font Tweak (Optional)
+## Release History
 
-Apply below patch to `BigFont02_I2C` to tweak the font design of `1` and `7`:
+**2024-01-26**
 
-```diff
---- a/BigFont02_I2C.cpp
-+++ b/BigFont02_I2C.cpp
-@@ -116,3 +116,3 @@
-        1,      7,      0,      1,      5,      0,              //      0x30    0
--       32,     32,     0,      32,     32,     1,              //      0x31    1
-+       32,     1,      32,     32,     1,      32,             //      0x31    1
-        4,      2,      0,      1,      5,      5,              //      0x32    2
-@@ -122,3 +122,3 @@
-        1,      2,      3,      1,      5,      0,              //      0x36    6
--       1,      7,      0,      32,     32,     1,              //      0x37    7
-+       1,      7,      0,      32,     32,     0,              //      0x37    7
-        1,      2,      0,      1,      5,      0,              //      0x38    8
-```
+- Full screen clock when not driving;
+- Kilometer/mile switch (`SHOW_MILE`);
+- Speeding warning.
 
-Rebuild and upload.
+**2023-11-26**
+
+- Initial release.
