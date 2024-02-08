@@ -204,7 +204,7 @@ static void update_date(bool force, int year, int month, int day, int weekday) {
     // so we have to make a copy before calling another one.
     char day_str[4];
     snprintf(day_str, sizeof(day_str), "%s", dayShortStr(weekday));
-    lcd.printf("%s, %s %02d, %d", day_str, monthShortStr(month), day, year);
+    lcd.printf("%s, %s%s%2d, %d", day_str, monthShortStr(month), (day < 10) ? "." : " ", day, year);
     old_year = year;
     old_month = month;
     old_day = day;
