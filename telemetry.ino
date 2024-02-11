@@ -62,6 +62,10 @@ GameState ets_telemetry_parse(String &json, EtsState *state) {
     } else {
       state->fuel_dist = -1;  // keep previous value
     }
+
+    state->engine = truck["engineOn"];
+    state->light_dash = truck["lightsParkingOn"];
+    state->light_head = truck["lightsBeamLowOn"];
   }
 
   auto nav = ets["navigation"];

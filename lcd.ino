@@ -16,6 +16,15 @@ static LiquidCrystal_I2C lcd(LCD_ADDR, 20, 4);
 static LargeDigit digit(&lcd);
 static LcdMode lcd_mode = LCD_UNKNOWN;
 
+static void update_backlight(bool force, int level) {
+  static int old_level;
+  if (force || level != old_level) {
+    analogWrite(LCD_LED, level);
+    Serial.printf("Update backlight: %d\n", level);
+    old_level = level;
+  }
+}
+
 // +----+----+----+----
 // 00:00 >8888 km 00:00
 // CruisBigBigBig Limit
@@ -173,6 +182,16 @@ void dashboard_update(EtsState *state, time_t time) {
   bool force = (lcd_mode != LCD_DASHBOARD);  // mode change needs a full update
   lcd_mode = LCD_DASHBOARD;
 
+  int level = BACKLIGHT_OFF;  // no backlight when engine off
+  if (state->engine) {
+    if (state->light_dash) {
+      level = state->light_head ? BACKLIGHT_NIGHT : BACKLIGHT_DAY;
+    } else {
+      level = BACKLIGHT_DIM;
+    }
+  }
+  update_backlight(force, level);
+
   if (force) {
     dashboard_init();
   }
@@ -254,6 +273,10 @@ void clock_update(time_t time) {
   bool force = (lcd_mode != LCD_CLOCK);  // mode change needs a full update
   lcd_mode = LCD_CLOCK;
 
+  // dim the clock backlight in late night (1:00am ~ 6:00am)
+  int hr = hour(time);
+  update_backlight(force, (1 <= hr && hr < 6) ? BACKLIGHT_CLOCK_DIM : BACKLIGHT_CLOCK);
+
   if (force) {
     clock_init();
   }
@@ -269,6 +292,7 @@ void lcd_init(int sda, int scl) {
   Wire.begin(sda, scl);
   lcd.init();
   lcd.backlight();
+  update_backlight(true, BACKLIGHT_MAX);
   lcd.clear();
   digit.begin();
 

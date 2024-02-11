@@ -29,12 +29,13 @@ The prices listed below are the retail prices I purchased in China in October 20
 
 Pin connections:
 
-| LCD 2004 I2C | ESP32C3-CORE |
-| ------------ | ------------ |
-| VCC          | VBUS         |
-| GND          | GND          |
-| SDA          | GPIO4        |
-| SCL          | GPIO5        |
+| LCD 2004 I2C                                             | ESP32C3-CORE |
+| -------------------------------------------------------- | ------------ |
+| `VCC`                                                    | `VBUS`       |
+| `GND`                                                    | `GND`        |
+| `SDA`                                                    | `GPIO4`      |
+| `SCL`                                                    | `GPIO5`      |
+| `LED` (optional, refer the "Adaptive Backlight" section) | `GPIO6`      |
 
 ## Configuration
 
@@ -61,12 +62,23 @@ static const bool DST = false;                   // daylight saving time
 >
 > - Mainland China: `ntp.ntsc.ac.cn`
 > - Other regions: `pool.ntp.org`
+>
+> If you don't want the dashboard access the Internet, set `CLOCK_ENABLE` to `false` to completely disable the clock feature.
 
 In most case, the default I2C address of LCD 2004 should be `0x27`. But if you cannot get the LCD work, try to change this address to `0x3F` (PCF8574AT).
 
 ```c
 // 2004 LCD PCF8574 I2C address
 static const int LCD_ADDR = 0x27;
+```
+
+More dashboard features could be customized with below settings:
+
+```c
+// Dashboard configurations
+const bool CLOCK_BLINK = false;   // blink the ":" mark in dashboard clock
+const bool WARN_SPEEDING = true;  // blink the speed limit when speeding
+const bool SHOW_MILE = false;     // display with mile instead of km
 ```
 
 ## Build and Upload
@@ -98,9 +110,37 @@ To build and upload the firmware:
 
 It is highly recommended to open the "Serial Monitor" in Arduino IDE for troubleshooting during the first run.
 
+## Adaptive Backlight
+
+By default, the backlight of 2004 I2C LCD can only be set to on or off. To let the firmware control the backlight brightness, the jumper on the I2C daughter board should be removed, and the top jumper pin (labeled with `LED`) should be connected to `GPIO6`. Then the backlight will be controlled as below:
+
+- Dashboard mode:
+  - Completely off when the truck engine is stopped;
+  - Brighter when parking light is on (for the daytime);
+  - Dimmer when headlight is on (for night).
+- Clock mode:
+  - Dimmer on late night (1:00am ~ 6:00am).
+
+All the backlight levels could be customized with below settings, values from `0` to `255` (100%):
+
+```c
+// Backlight levels for dashboard
+static const int BACKLIGHT_DAY = 200;    // when parking light on, brighter
+static const int BACKLIGHT_NIGHT = 128;  // when headlight on, dimmer
+static const int BACKLIGHT_DIM = 64;     // all lights off
+
+// Backlight levels for clock
+static const int BACKLIGHT_CLOCK = 128;     // normal time
+static const int BACKLIGHT_CLOCK_DIM = 24;  // late night
+```
+
 ## Release History
 
-**2024-01-26**
+**2024-2-11**
+
+- Adaptive backlight.
+
+**2024-1-26**
 
 - Full screen clock when not driving;
 - Kilometer/mile switch (`SHOW_MILE`);

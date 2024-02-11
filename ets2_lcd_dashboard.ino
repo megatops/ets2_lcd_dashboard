@@ -30,6 +30,19 @@ const bool CLOCK_BLINK = false;   // blink the ":" mark in dashboard clock
 const bool WARN_SPEEDING = true;  // blink the speed limit when speeding
 const bool SHOW_MILE = false;     // display with mile instead of km
 
+// Backlight levels
+static const int BACKLIGHT_MAX = 255;
+static const int BACKLIGHT_OFF = 0;
+
+// Backlight levels for dashboard
+static const int BACKLIGHT_DAY = 200;    // when parking light on, brighter
+static const int BACKLIGHT_NIGHT = 128;  // when headlight on, dimmer
+static const int BACKLIGHT_DIM = 64;     // all lights off
+
+// Backlight levels for clock
+static const int BACKLIGHT_CLOCK = 128;     // normal time
+static const int BACKLIGHT_CLOCK_DIM = 24;  // late night
+
 // 2004 LCD PCF8574 I2C address
 static const int LCD_ADDR = 0x27;
 
@@ -37,9 +50,13 @@ static const int LCD_ADDR = 0x27;
 static const int I2C_SDA = 4;
 static const int I2C_SCL = 5;
 
+// LCD backlight control pin (PWM)
+static const int LCD_LED = 6;
+
 // Serial baudrate
 static const int SERIAL_BAUDRATE = 921600;
 
+// Server timeouts
 static const int MAX_FAILURE = 10;             // max retries before idle
 static const int ACTIVE_DELAY = 500;           // API query interval in game
 static const int IDLE_DELAY = 5000;            // API query interval when idle
@@ -158,6 +175,7 @@ static void dashboard_timer_func(void) {
 
 void setup() {
   Serial.begin(SERIAL_BAUDRATE);
+  pinMode(LCD_LED, OUTPUT);
   lcd_init(I2C_SDA, I2C_SCL);
   http.setReuse(true);
   wifi_connect();

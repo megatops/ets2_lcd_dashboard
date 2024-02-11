@@ -9,8 +9,16 @@
 #define __ETS_H__
 
 typedef struct {
+  // lights
+  bool engine;
+  bool light_dash;
+  bool light_head;
+
+  // navigation
   int eta_dist;
   int eta_time;  // minutes
+
+  // truck status
   int speed;
   int cruise;  // 0 for off
   int limit;   // 0 for no limit
