@@ -119,7 +119,7 @@ By default, the backlight of 2004 I2C LCD can only be set to on or off. To let t
   - Brighter when parking light is on (for the daytime);
   - Dimmer when headlight is on (for night).
 - Clock mode:
-  - Dimmer on late night (1:00am ~ 6:00am).
+  - Dimmer as night light (1:00am ~ 5:59am by default).
 
 All the backlight levels could be customized with below settings, values from `0` to `255` (100%):
 
@@ -131,7 +131,10 @@ static const int BACKLIGHT_DIM = 64;     // all lights off
 
 // Backlight levels for clock
 static const int BACKLIGHT_CLOCK = 128;     // normal time
-static const int BACKLIGHT_CLOCK_DIM = 24;  // late night
+static const int BACKLIGHT_CLOCK_DIM = 24;  // night light
+
+// Hours to dim the clock (1:00am ~ 5:59am by default)
+static const bool CLOCK_DIM_HOURS[24] = { ... };
 ```
 
 ## Release History
@@ -149,3 +152,13 @@ static const int BACKLIGHT_CLOCK_DIM = 24;  // late night
 **2023-11-26**
 
 - Initial release.
+
+## External links
+
+Forums
+
+- [Discussion on the official SCS forum](https://forum.scssoft.com/viewtopic.php?p=1881413)
+
+Tutorial
+
+- [给美卡模拟/欧卡模拟2手工撸个硬件行车电脑 (Chinese)](https://post.smzdm.com/p/al8ee28e/)

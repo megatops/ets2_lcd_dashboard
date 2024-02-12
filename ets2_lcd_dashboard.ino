@@ -41,7 +41,35 @@ static const int BACKLIGHT_DIM = 64;     // all lights off
 
 // Backlight levels for clock
 static const int BACKLIGHT_CLOCK = 128;     // normal time
-static const int BACKLIGHT_CLOCK_DIM = 24;  // late night
+static const int BACKLIGHT_CLOCK_DIM = 24;  // night light
+
+// Hours to dim the clock (1:00am ~ 5:59am by default)
+static const bool CLOCK_DIM_HOURS[24] = {
+  [0] = false,
+  [1] = true,
+  [2] = true,
+  [3] = true,
+  [4] = true,
+  [5] = true,
+  [6] = false,
+  [7] = false,
+  [8] = false,
+  [9] = false,
+  [10] = false,
+  [11] = false,
+  [12] = false,
+  [13] = false,
+  [14] = false,
+  [15] = false,
+  [16] = false,
+  [17] = false,
+  [18] = false,
+  [19] = false,
+  [20] = false,
+  [21] = false,
+  [22] = false,
+  [23] = false,
+};
 
 // 2004 LCD PCF8574 I2C address
 static const int LCD_ADDR = 0x27;

@@ -273,9 +273,8 @@ void clock_update(time_t time) {
   bool force = (lcd_mode != LCD_CLOCK);  // mode change needs a full update
   lcd_mode = LCD_CLOCK;
 
-  // dim the clock backlight in late night (1:00am ~ 6:00am)
-  int hr = hour(time);
-  update_backlight(force, (1 <= hr && hr < 6) ? BACKLIGHT_CLOCK_DIM : BACKLIGHT_CLOCK);
+  // dim the clock backlight as night light
+  update_backlight(force, CLOCK_DIM_HOURS[hour(time)] ? BACKLIGHT_CLOCK_DIM : BACKLIGHT_CLOCK);
 
   if (force) {
     clock_init();
