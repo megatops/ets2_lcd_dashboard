@@ -35,9 +35,8 @@ static const int BACKLIGHT_MAX = 255;
 static const int BACKLIGHT_OFF = 0;
 
 // Backlight levels for dashboard
-static const int BACKLIGHT_DAY = 200;    // when parking light on, brighter
+static const int BACKLIGHT_DAY = 200;    // for daytime, brighter
 static const int BACKLIGHT_NIGHT = 128;  // when headlight on, dimmer
-static const int BACKLIGHT_DIM = 64;     // all lights off
 
 // Backlight levels for clock
 static const int BACKLIGHT_CLOCK = 128;     // normal time
@@ -81,8 +80,9 @@ static const int I2C_SCL = 5;
 // LCD backlight control pin (PWM)
 static const int LCD_LED = 6;
 
-// Serial baudrate
+// Bus frequencies
 static const int SERIAL_BAUDRATE = 921600;
+static const uint32_t I2C_FREQ = 400000;  // 400kHz fast mode
 
 // Server timeouts
 static const int MAX_FAILURE = 10;             // max retries before idle
@@ -204,7 +204,7 @@ static void dashboard_timer_func(void) {
 void setup() {
   Serial.begin(SERIAL_BAUDRATE);
   pinMode(LCD_LED, OUTPUT);
-  lcd_init(I2C_SDA, I2C_SCL);
+  lcd_init(I2C_SDA, I2C_SCL, I2C_FREQ);
   http.setReuse(true);
   wifi_connect();
 

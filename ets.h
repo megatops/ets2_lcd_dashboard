@@ -9,10 +9,9 @@
 #define __ETS_H__
 
 typedef struct {
-  // lights
-  bool engine;
-  bool light_dash;
-  bool light_head;
+  // for brightness control
+  bool started;
+  bool headlight;
 
   // navigation
   int eta_dist;

@@ -116,7 +116,6 @@ By default, the backlight of 2004 I2C LCD can only be set to on or off. To let t
 
 - Dashboard mode:
   - Completely off when the truck engine is stopped;
-  - Brighter when parking light is on (for the daytime);
   - Dimmer when headlight is on (for night).
 - Clock mode:
   - Dimmer as night light (1:00am ~ 5:59am by default).
@@ -125,9 +124,8 @@ All the backlight levels could be customized with below settings, values from `0
 
 ```c
 // Backlight levels for dashboard
-static const int BACKLIGHT_DAY = 200;    // when parking light on, brighter
+static const int BACKLIGHT_DAY = 200;    // for daytime, brighter
 static const int BACKLIGHT_NIGHT = 128;  // when headlight on, dimmer
-static const int BACKLIGHT_DIM = 64;     // all lights off
 
 // Backlight levels for clock
 static const int BACKLIGHT_CLOCK = 128;     // normal time

@@ -182,15 +182,8 @@ void dashboard_update(EtsState *state, time_t time) {
   bool force = (lcd_mode != LCD_DASHBOARD);  // mode change needs a full update
   lcd_mode = LCD_DASHBOARD;
 
-  int level = BACKLIGHT_OFF;  // no backlight when engine off
-  if (state->engine) {
-    if (state->light_dash) {
-      level = state->light_head ? BACKLIGHT_NIGHT : BACKLIGHT_DAY;
-    } else {
-      level = BACKLIGHT_DIM;
-    }
-  }
-  update_backlight(force, level);
+  // no backlight when engine off, dim when headlight on
+  update_backlight(force, state->started ? (state->headlight ? BACKLIGHT_NIGHT : BACKLIGHT_DAY) : BACKLIGHT_OFF);
 
   if (force) {
     dashboard_init();
@@ -287,8 +280,8 @@ LcdMode lcd_get_mode(void) {
   return lcd_mode;
 }
 
-void lcd_init(int sda, int scl) {
-  Wire.begin(sda, scl);
+void lcd_init(int sda, int scl, uint32_t freq) {
+  Wire.begin(sda, scl, freq);
   lcd.init();
   lcd.backlight();
   update_backlight(true, BACKLIGHT_MAX);
