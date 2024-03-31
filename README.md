@@ -39,23 +39,23 @@ Pin connections:
 
 ## Configuration
 
-The Wi-Fi information and ETS2 telemetry web server address are hardcoded in `ets2_lcd_dashboard.ino`. You will need to update below lines to match your configuration (make sure to assign a static IPv4 address to your PC):
+The Wi-Fi information and ETS2 telemetry web server address are hardcoded in `config.h`. You will need to update below lines to match your configuration (make sure to assign a static IPv4 address to your PC):
 
-```c
+```cpp
 // Wi-Fi and API server
-static const char *SSID = "YOUR WIFI SSID";
-static const char *PASSWORD = "YOUR WIFI PASSWORD";
-static const char *ETS_API = "http://YOUR_PC_IP:25555/api/ets2/telemetry";
+constexpr const char *SSID = "YOUR WIFI SSID";
+constexpr const char *PASSWORD = "YOUR WIFI PASSWORD";
+constexpr const char *ETS_API = "http://YOUR_PC_IP:25555/api/ets2/telemetry";
 ```
 
 Setup NTP server, your local time zone and daylight saving time if you enabled the clock feature (need Internet access):
 
-```c
+```cpp
 // Clock settings
-static const bool CLOCK_ENABLE = true;           // false to disable the clock feature
-static const char *NTP_SERVER = "pool.ntp.org";  // "ntp.ntsc.ac.cn" for mainland China
-static const int TIME_ZONE = 8 * 60;             // local time zone in minutes
-static const bool DST = false;                   // daylight saving time
+constexpr bool CLOCK_ENABLE = true;                 // false to disable the clock feature
+constexpr const char *NTP_SERVER = "pool.ntp.org";  // "ntp.ntsc.ac.cn" for mainland China
+constexpr int TIME_ZONE = 8 * 60;                   // local time zone in minutes
+constexpr bool DST = false;                         // daylight saving time
 ```
 
 > ℹ The clock will sync with NTP server every hour to keep accurate time. Choose the fastest server to speedup the initial sync:
@@ -65,20 +65,20 @@ static const bool DST = false;                   // daylight saving time
 >
 > If you don't want the dashboard access the Internet, set `CLOCK_ENABLE` to `false` to completely disable the clock feature.
 
-In most case, the default I2C address of LCD 2004 should be `0x27`. But if you cannot get the LCD work, try to change this address to `0x3F` (PCF8574AT).
+In most case, the default I2C address of LCD 2004 should be `0x27`. But if you cannot get the LCD work, try to change the address in `board.h` to `0x3F` (PCF8574AT).
 
-```c
+```cpp
 // 2004 LCD PCF8574 I2C address
-static const int LCD_ADDR = 0x27;
+constexpr int LCD_ADDR = 0x27;
 ```
 
-More dashboard features could be customized with below settings:
+More dashboard features could be customized with below settings (`config.h`):
 
-```c
+```cpp
 // Dashboard configurations
-const bool CLOCK_BLINK = false;   // blink the ":" mark in dashboard clock
-const bool WARN_SPEEDING = true;  // blink the speed limit when speeding
-const bool SHOW_MILE = false;     // display with mile instead of km
+constexpr bool CLOCK_BLINK = false;   // blink the ":" mark in dashboard clock
+constexpr bool WARN_SPEEDING = true;  // blink the speed limit when speeding
+constexpr bool SHOW_MILE = false;     // display with mile instead of km
 ```
 
 ## Build and Upload
@@ -122,17 +122,17 @@ By default, the backlight of 2004 I2C LCD can only be set to on or off. To let t
 
 All the backlight levels could be customized with below settings, values from `0` to `255` (100%):
 
-```c
+```cpp
 // Backlight levels for dashboard
-static const int BACKLIGHT_DAY = 200;    // for daytime, brighter
-static const int BACKLIGHT_NIGHT = 128;  // when headlight on, dimmer
+constexpr int BACKLIGHT_DAY = 200;    // for daytime, brighter
+constexpr int BACKLIGHT_NIGHT = 128;  // when headlight on, dimmer
 
 // Backlight levels for clock
-static const int BACKLIGHT_CLOCK = 128;     // normal time
-static const int BACKLIGHT_CLOCK_DIM = 24;  // night light
+constexpr int BACKLIGHT_CLOCK = 128;     // normal time
+constexpr int BACKLIGHT_CLOCK_DIM = 24;  // night light
 
 // Hours to dim the clock (1:00am ~ 5:59am by default)
-static const bool CLOCK_DIM_HOURS[24] = { ... };
+static constexpr bool CLOCK_DIM_HOURS[24] = { ... };
 ```
 
 ## Release History

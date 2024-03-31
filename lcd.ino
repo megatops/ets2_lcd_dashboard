@@ -9,6 +9,7 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include "ets.h"
+#include "config.h"
 
 #define LIMIT(var, max) ((var) = ((var) > (max)) ? (max) : (var))
 

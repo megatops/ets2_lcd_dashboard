@@ -13,84 +13,16 @@
 #include <WiFi.h>
 #include <WiFiUdp.h>
 #include "ets.h"
-
-// Wi-Fi and API server
-static const char *SSID = "YOUR WIFI SSID";
-static const char *PASSWORD = "YOUR WIFI PASSWORD";
-static const char *ETS_API = "http://YOUR_PC_IP:25555/api/ets2/telemetry";
-
-// Clock settings
-static const bool CLOCK_ENABLE = true;           // false to disable the clock feature
-static const char *NTP_SERVER = "pool.ntp.org";  // "ntp.ntsc.ac.cn" for mainland China
-static const int TIME_ZONE = 8 * 60;             // local time zone in minutes
-static const bool DST = false;                   // daylight saving time
-
-// Dashboard configurations
-const bool CLOCK_BLINK = false;   // blink the ":" mark in dashboard clock
-const bool WARN_SPEEDING = true;  // blink the speed limit when speeding
-const bool SHOW_MILE = false;     // display with mile instead of km
-
-// Backlight levels
-static const int BACKLIGHT_MAX = 255;
-static const int BACKLIGHT_OFF = 0;
-
-// Backlight levels for dashboard
-static const int BACKLIGHT_DAY = 200;    // for daytime, brighter
-static const int BACKLIGHT_NIGHT = 128;  // when headlight on, dimmer
-
-// Backlight levels for clock
-static const int BACKLIGHT_CLOCK = 128;     // normal time
-static const int BACKLIGHT_CLOCK_DIM = 24;  // night light
-
-// Hours to dim the clock (1:00am ~ 5:59am by default)
-static const bool CLOCK_DIM_HOURS[24] = {
-  [0] = false,
-  [1] = true,
-  [2] = true,
-  [3] = true,
-  [4] = true,
-  [5] = true,
-  [6] = false,
-  [7] = false,
-  [8] = false,
-  [9] = false,
-  [10] = false,
-  [11] = false,
-  [12] = false,
-  [13] = false,
-  [14] = false,
-  [15] = false,
-  [16] = false,
-  [17] = false,
-  [18] = false,
-  [19] = false,
-  [20] = false,
-  [21] = false,
-  [22] = false,
-  [23] = false,
-};
-
-// 2004 LCD PCF8574 I2C address
-static const int LCD_ADDR = 0x27;
-
-// I2C IO pins
-static const int I2C_SDA = 4;
-static const int I2C_SCL = 5;
-
-// LCD backlight control pin (PWM)
-static const int LCD_LED = 6;
-
-// Bus frequencies
-static const int SERIAL_BAUDRATE = 921600;
-static const uint32_t I2C_FREQ = 400000;  // 400kHz fast mode
+#include "config.h"
+#include "board.h"
 
 // Server timeouts
-static const int MAX_FAILURE = 10;             // max retries before idle
-static const int ACTIVE_DELAY = 500;           // API query interval in game
-static const int IDLE_DELAY = 5000;            // API query interval when idle
-static const int NTP_UPDATE = 60 * 60 * 1000;  // interval to sync clock with NTP
-static const int HTTP_CONN_TIMEOUT = 200;      // timeout for connect
-static const int HTTP_READ_TIMEOUT = 500;      // timeout for TCP read
+static constexpr int MAX_FAILURE = 10;             // max retries before idle
+static constexpr int ACTIVE_DELAY = 500;           // API query interval in game
+static constexpr int IDLE_DELAY = 5000;            // API query interval when idle
+static constexpr int NTP_UPDATE = 60 * 60 * 1000;  // interval to sync clock with NTP
+static constexpr int HTTP_CONN_TIMEOUT = 200;      // timeout for connect
+static constexpr int HTTP_READ_TIMEOUT = 500;      // timeout for TCP read
 
 static HTTPClient http;
 static WiFiUDP ntpUDP;

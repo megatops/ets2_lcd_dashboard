@@ -25,101 +25,10 @@ private:
   LiquidCrystal_I2C *_lcd;
   void writeDigit(int x, int y, int digit);
   void writeSpace(int x, int y);
-};
 
-static const int CHAR_WIDTH = 3;
-static const int CHAR_HEIGHT = 2;
-
-static const uint8_t gLargeDigitStrokes[][8] = {
-  [0] = { 0b11100,
-          0b11110,
-          0b11110,
-          0b11110,
-          0b11110,
-          0b11110,
-          0b11110,
-          0b11100 },
-  [1] = { 0b00111,
-          0b01111,
-          0b01111,
-          0b01111,
-          0b01111,
-          0b01111,
-          0b01111,
-          0b00111 },
-  [2] = { 0b11111,
-          0b11111,
-          0b00000,
-          0b00000,
-          0b00000,
-          0b00000,
-          0b11111,
-          0b11111 },
-  [3] = { 0b11110,
-          0b11100,
-          0b00000,
-          0b00000,
-          0b00000,
-          0b00000,
-          0b11000,
-          0b11100 },
-  [4] = { 0b01111,
-          0b00111,
-          0b00000,
-          0b00000,
-          0b00000,
-          0b00000,
-          0b00011,
-          0b00111 },
-  [5] = { 0b00000,
-          0b00000,
-          0b00000,
-          0b00000,
-          0b00000,
-          0b00000,
-          0b11111,
-          0b11111 },
-  [6] = { 0b00000,
-          0b00000,
-          0b00000,
-          0b00000,
-          0b00000,
-          0b00000,
-          0b00111,
-          0b01111 },
-  [7] = { 0b11111,
-          0b11111,
-          0b00000,
-          0b00000,
-          0b00000,
-          0b00000,
-          0b00000,
-          0b00000 }
-};
-
-// each digit takes up 3 cols x 2 rows
-// 0-7: index of gLargeDigitStrokes
-static const uint8_t gLargeDigitFonts[][CHAR_HEIGHT][CHAR_WIDTH] = {
-  [0] = { { 1, 7, 0 },
-          { 1, 5, 0 } },
-  [1] = { { ' ', 1, ' ' },
-          { ' ', 1, ' ' } },
-  [2] = { { 4, 2, 0 },
-          { 1, 5, 5 } },
-  [3] = { { 4, 2, 0 },
-          { 6, 5, 0 } },
-  [4] = { { 1, 5, 0 },
-          { ' ', ' ', 0 } },
-  [5] = { { 1, 2, 3 },
-          { 6, 5, 0 } },
-  [6] = { { 1, 2, 3 },
-          { 1, 5, 0 } },
-  [7] = { { 1, 7, 0 },
-          { ' ', ' ', 0 } },
-  [8] = { { 1, 2, 0 },
-          { 1, 5, 0 } },
-  [9] = { { 1, 2, 0 },
-          { 6, 5, 0 } }
+  // each digit takes up 3 cols x 2 rows
+  static constexpr int CHAR_WIDTH = 3;
+  static constexpr int CHAR_HEIGHT = 2;
 };
 
 LargeDigit::LargeDigit(LiquidCrystal_I2C *lcd) {
@@ -127,16 +36,107 @@ LargeDigit::LargeDigit(LiquidCrystal_I2C *lcd) {
 }
 
 void LargeDigit::begin() {
-  for (int i = 0; i < ARRAY_SIZE(gLargeDigitStrokes); i++) {
-    _lcd->createChar(i, (uint8_t *)gLargeDigitStrokes[i]);
+  static const uint8_t Strokes[][8] = {
+    [0] = { 0b11100,
+            0b11110,
+            0b11110,
+            0b11110,
+            0b11110,
+            0b11110,
+            0b11110,
+            0b11100 },
+    [1] = { 0b00111,
+            0b01111,
+            0b01111,
+            0b01111,
+            0b01111,
+            0b01111,
+            0b01111,
+            0b00111 },
+    [2] = { 0b11111,
+            0b11111,
+            0b00000,
+            0b00000,
+            0b00000,
+            0b00000,
+            0b11111,
+            0b11111 },
+    [3] = { 0b11110,
+            0b11100,
+            0b00000,
+            0b00000,
+            0b00000,
+            0b00000,
+            0b11000,
+            0b11100 },
+    [4] = { 0b01111,
+            0b00111,
+            0b00000,
+            0b00000,
+            0b00000,
+            0b00000,
+            0b00011,
+            0b00111 },
+    [5] = { 0b00000,
+            0b00000,
+            0b00000,
+            0b00000,
+            0b00000,
+            0b00000,
+            0b11111,
+            0b11111 },
+    [6] = { 0b00000,
+            0b00000,
+            0b00000,
+            0b00000,
+            0b00000,
+            0b00000,
+            0b00111,
+            0b01111 },
+    [7] = { 0b11111,
+            0b11111,
+            0b00000,
+            0b00000,
+            0b00000,
+            0b00000,
+            0b00000,
+            0b00000 }
+  };
+
+  for (int i = 0; i < ARRAY_SIZE(Strokes); i++) {
+    _lcd->createChar(i, (uint8_t *)Strokes[i]);
   }
 }
 
 void LargeDigit::writeDigit(int x, int y, int digit) {
+  // 0-7: index of Strokes
+  static const uint8_t Font[][CHAR_HEIGHT][CHAR_WIDTH] = {
+    [0] = { { 1, 7, 0 },
+            { 1, 5, 0 } },
+    [1] = { { ' ', 1, ' ' },
+            { ' ', 1, ' ' } },
+    [2] = { { 4, 2, 0 },
+            { 1, 5, 5 } },
+    [3] = { { 4, 2, 0 },
+            { 6, 5, 0 } },
+    [4] = { { 1, 5, 0 },
+            { ' ', ' ', 0 } },
+    [5] = { { 1, 2, 3 },
+            { 6, 5, 0 } },
+    [6] = { { 1, 2, 3 },
+            { 1, 5, 0 } },
+    [7] = { { 1, 7, 0 },
+            { ' ', ' ', 0 } },
+    [8] = { { 1, 2, 0 },
+            { 1, 5, 0 } },
+    [9] = { { 1, 2, 0 },
+            { 6, 5, 0 } }
+  };
+
   for (int row = 0; row < CHAR_HEIGHT; row++) {
     _lcd->setCursor(x, y + row);
     for (int i = 0; i < CHAR_WIDTH; i++) {
-      _lcd->write(gLargeDigitFonts[digit][row][i]);
+      _lcd->write(Font[digit][row][i]);
     }
   }
 }
