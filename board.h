@@ -16,7 +16,7 @@ constexpr int I2C_SDA = 4;
 constexpr int I2C_SCL = 5;
 
 // LCD backlight control pin (PWM)
-constexpr int LCD_LED = 6;
+constexpr int LCD_LED = 2;
 
 // Bus frequencies
 constexpr int SERIAL_BAUDRATE = 921600;

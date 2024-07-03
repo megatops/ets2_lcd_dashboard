@@ -6,12 +6,19 @@
 // See the COPYING file in the top-level directory.
 
 #include <cfloat>
-#include <HTTPClient.h>
 #include <NTPClient.h>
 #include <SoftwareTimer.h>
 #include <TimeLib.h>
-#include <WiFi.h>
 #include <WiFiUdp.h>
+
+#ifdef ESP8266
+#include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h>
+#else
+#include <WiFi.h>
+#include <HTTPClient.h>
+#endif
+
 #include "ets.h"
 #include "config.h"
 #include "board.h"
@@ -22,10 +29,11 @@ static constexpr int ACTIVE_DELAY = 500;           // API query interval in game
 static constexpr int IDLE_DELAY = 5000;            // API query interval when idle
 static constexpr int NTP_UPDATE = 60 * 60 * 1000;  // interval to sync clock with NTP
 static constexpr int HTTP_CONN_TIMEOUT = 200;      // timeout for connect
-static constexpr int HTTP_READ_TIMEOUT = 500;      // timeout for TCP read
+static constexpr int HTTP_READ_TIMEOUT = 450;      // timeout for TCP read
 
-static HTTPClient http;
+static WiFiClient client;
 static WiFiUDP ntpUDP;
+static HTTPClient http;
 static NTPClient ntp(ntpUDP, NTP_SERVER, (TIME_ZONE - DST * 60) * 60, NTP_UPDATE);
 
 static void wifi_connect(void (*tick)() = nullptr) {
@@ -70,7 +78,7 @@ static void clock_tick(void) {
   }
 
   if (WiFi.status() == WL_CONNECTED && ntp.update()) {
-    Serial.printf("NTP sync success: %s.\n", ntp.getFormattedTime());
+    Serial.printf("NTP sync success: %s.\n", ntp.getFormattedTime().c_str());
   }
 
   // the time may have been updated by NTP, fetch it again
@@ -81,9 +89,12 @@ static void clock_tick(void) {
 static GameState ets_telemetry_query(EtsState *state) {
   GameState game = GAME_SERVER_DOWN;
 
-  http.begin(ETS_API);
+  http.begin(client, ETS_API);
+#ifndef ESP8266
   http.setConnectTimeout(HTTP_CONN_TIMEOUT);
+#endif
   http.setTimeout(HTTP_READ_TIMEOUT);
+
   int http_code = http.GET();
   if (http_code > 0) {
     String json = http.getString();

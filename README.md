@@ -1,6 +1,6 @@
 # ETS2 LCD Dashboard
 
-ETS2 LCD dashboard is a client of [ETS2 Telemetry Web Server](https://github.com/Funbit/ets2-telemetry-server) made with ESP32-C3. It can connect to the telemetry server via Wi-Fi, work as a wireless digital dashboard for your ETS2/ATS trucks. Theoretically, the code should be able to port to any MCU boards with integrated Wi-Fi support (such as Raspberry Pi Pico W, ESP8266, ESP32 series boards).
+ETS2 LCD dashboard is a client of [ETS2 Telemetry Web Server](https://github.com/Funbit/ets2-telemetry-server) made with ESP8266 / ESP32-C3. It can connect to the telemetry server via Wi-Fi, work as a wireless digital dashboard for your ETS2/ATS trucks. Theoretically, the code should be able to port to any MCU boards with integrated Wi-Fi support (such as Raspberry Pi Pico W, other ESP32 series boards).
 
 ![connections](./ets2_lcd_dashboard.png)
 
@@ -29,13 +29,13 @@ The prices listed below are the retail prices I purchased in China in October 20
 
 Pin connections:
 
-| LCD 2004 I2C                                             | ESP32C3-CORE |
-| -------------------------------------------------------- | ------------ |
-| `VCC`                                                    | `VBUS`       |
-| `GND`                                                    | `GND`        |
-| `SDA`                                                    | `GPIO4`      |
-| `SCL`                                                    | `GPIO5`      |
-| `LED` (optional, refer the "Adaptive Backlight" section) | `GPIO6`      |
+| LCD 2004 I2C                                             | ESP8266 / ESP32-C3 |
+| -------------------------------------------------------- | ------------------ |
+| `VCC`                                                    | `VBUS`             |
+| `GND`                                                    | `GND`              |
+| `SDA`                                                    | `GPIO4`            |
+| `SCL`                                                    | `GPIO5`            |
+| `LED` (optional, refer the "Adaptive Backlight" section) | `GPIO2`            |
 
 ## Configuration
 
@@ -77,6 +77,7 @@ More dashboard features could be customized with below settings (`config.h`):
 ```cpp
 // Dashboard configurations
 constexpr bool CLOCK_BLINK = false;   // blink the ":" mark in dashboard clock
+constexpr bool CLOCK_12H = true;      // display dashboard clock in 12 hour
 constexpr bool WARN_SPEEDING = true;  // blink the speed limit when speeding
 constexpr bool SHOW_MILE = false;     // display with mile instead of km
 ```
@@ -108,11 +109,11 @@ To build and upload the firmware:
 
  3. Open the `ets2_lcd_dashboard` folder, click "Upload" button to build and upload.
 
-It is highly recommended to open the "Serial Monitor" in Arduino IDE for troubleshooting during the first run.
+It is highly recommended to open the "Serial Monitor" (`921600` baud) in Arduino IDE for troubleshooting during the first run.
 
 ## Adaptive Backlight
 
-By default, the backlight of 2004 I2C LCD can only be set to on or off. To let the firmware control the backlight brightness, the jumper on the I2C daughter board should be removed, and the top jumper pin (labeled with `LED`) should be connected to `GPIO6`. Then the backlight will be controlled as below:
+By default, the backlight of 2004 I2C LCD can only be set to on or off. To let the firmware control the backlight brightness, the jumper on the I2C daughter board should be removed, and the top jumper pin (labeled with `LED`) should be connected to `GPIO2`. Then the backlight will be controlled as below:
 
 - Dashboard mode:
   - Completely off when the truck engine is stopped;
@@ -136,6 +137,12 @@ static constexpr bool CLOCK_DIM_HOURS[24] = { ... };
 ```
 
 ## Release History
+
+**2024-7-3**
+
+- ESP8266 support;
+- Changed LED pin from `GPIO6` to `GPIO2` to compatible with ESP8266;
+- 12/24 hour dashboard clock format switch (`CLOCK_12H`).
 
 **2024-2-11**
 

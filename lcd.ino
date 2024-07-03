@@ -21,7 +21,7 @@ static void update_backlight(bool force, int level) {
   static int old_level;
   if (force || level != old_level) {
     analogWrite(LCD_LED, level);
-    Serial.printf("Update backlight: %d\n", level);
+    DEBUG("Update backlight: %d\n", level);
     old_level = level;
   }
 }
@@ -39,7 +39,7 @@ static void update_speed(bool force, int speed) {
 
   if (force || speed != old) {
     digit.print(5, 1, speed, 3, false);
-    Serial.printf("Update speed: %d\n", speed);
+    DEBUG("Update speed: %d\n", speed);
     old = speed;
   }
 }
@@ -55,7 +55,7 @@ static void update_ets_dist(bool force, int eta_dist) {
     } else {
       lcd.printf("%3d ", eta_dist);  // 888 km
     }
-    Serial.printf("Update ETA distance: %d\n", eta_dist);
+    DEBUG("Update ETA distance: %d\n", eta_dist);
     old = eta_dist;
   }
 }
@@ -67,7 +67,7 @@ static void update_eta_time(bool force, int eta_time) {
   if (force || eta_time != old) {
     lcd.setCursor(15, 0);
     lcd.printf("%02d:%02d", eta_time / 60, eta_time % 60);
-    Serial.printf("Update ETA time: %d\n", eta_time);
+    DEBUG("Update ETA time: %d\n", eta_time);
     old = eta_time;
   }
 }
@@ -83,7 +83,7 @@ static void update_cruise(bool force, int cruise) {
     } else {
       lcd.print("---");
     }
-    Serial.printf("Update cruise: %d\n", cruise);
+    DEBUG("Update cruise: %d\n", cruise);
     old = cruise;
   }
 }
@@ -99,7 +99,7 @@ static void update_limit(bool force, int limit, bool speeding) {
     } else {
       lcd.print("---");
     }
-    Serial.printf("Update speed limit: %d\n", limit);
+    DEBUG("Update speed limit: %d\n", limit);
     old_limit = limit;
   }
 
@@ -127,7 +127,7 @@ static void update_fuel(bool force, int fuel, int fuel_dist) {
   if (force || fuel_dist != old_dist) {
     lcd.setCursor(16, 3);
     lcd.printf("%4d", fuel_dist);
-    Serial.printf("Update fuel distance: %d\n", fuel_dist);
+    DEBUG("Update fuel distance: %d\n", fuel_dist);
     old_dist = fuel_dist;
   }
 
@@ -140,7 +140,7 @@ static void update_fuel(bool force, int fuel, int fuel_dist) {
     }
     lcd.setCursor(5, 3);
     lcd.print(bar);
-    Serial.printf("Update fuel: %d%%\n", fuel);
+    DEBUG("Update fuel: %d%%\n", fuel);
     old_seg = seg;
   }
 }
@@ -191,7 +191,7 @@ void dashboard_update(EtsState *state, time_t time) {
   }
 
   if (CLOCK_ENABLE) {
-    update_dash_clock(force, hour(time), minute(time));
+    update_dash_clock(force, CLOCK_12H ? hourFormat12(time) : hour(time), minute(time));
   }
   update_limit(force, state->limit, (state->limit > 0) && (state->speed > state->limit));
   update_speed(force, state->speed);

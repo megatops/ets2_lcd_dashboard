@@ -103,7 +103,7 @@ void LargeDigit::begin() {
             0b00000 }
   };
 
-  for (int i = 0; i < ARRAY_SIZE(Strokes); i++) {
+  for (int i = 0; i < (int)ARRAY_SIZE(Strokes); i++) {
     _lcd->createChar(i, (uint8_t *)Strokes[i]);
   }
 }

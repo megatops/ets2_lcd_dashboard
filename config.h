@@ -20,7 +20,8 @@ constexpr int TIME_ZONE = 8 * 60;                   // local time zone in minute
 constexpr bool DST = false;                         // daylight saving time
 
 // Dashboard configurations
-constexpr bool CLOCK_BLINK = false;   // blink the ":" mark in dashboard clock
+constexpr bool CLOCK_BLINK = true;    // blink the ":" mark in dashboard clock
+constexpr bool CLOCK_12H = true;      // display dashboard clock in 12 hour
 constexpr bool WARN_SPEEDING = true;  // blink the speed limit when speeding
 constexpr bool SHOW_MILE = false;     // display with mile instead of km
 

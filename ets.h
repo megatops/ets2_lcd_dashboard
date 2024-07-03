@@ -39,4 +39,13 @@ typedef enum {
   LCD_CLOCK,
 } LcdMode;
 
+constexpr bool debug = false;  // verbose serial debug info
+
+#define DEBUG(...) \
+  do { \
+    if (debug) { \
+      Serial.printf(__VA_ARGS__); \
+    } \
+  } while (0)
+
 #endif
