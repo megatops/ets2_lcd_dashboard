@@ -65,4 +65,11 @@ static constexpr bool CLOCK_DIM_HOURS[24] = {
   [23] = false,
 };
 
+// electric truck models
+static const char *EV_TRUCKS[] = {
+  "E-Tech T",
+  "S BEV",
+  nullptr,
+};
+
 #endif

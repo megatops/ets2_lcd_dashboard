@@ -115,9 +115,16 @@ static void update_limit(bool force, int limit, bool speeding) {
   }
 }
 
-static void update_fuel(bool force, int fuel, int fuel_dist) {
+static void update_fuel(bool force, bool is_ev, int fuel, int fuel_dist) {
   LIMIT(fuel, 100);
   LIMIT(fuel_dist, 9999);
+
+  static bool old_is_ev;
+  if (force || is_ev != old_is_ev) {
+    lcd.setCursor(0, 3);
+    lcd.printf("%s", is_ev ? "Batt" : "Fuel");
+    old_is_ev = is_ev;
+  }
 
   static int old_dist = -1;
   if (fuel_dist < 0) {
@@ -198,7 +205,7 @@ void dashboard_update(EtsState *state, time_t time) {
   update_cruise(force, state->cruise);
   update_ets_dist(force, state->eta_dist);
   update_eta_time(force, state->eta_time);
-  update_fuel(force, state->fuel, state->fuel_dist);
+  update_fuel(force, state->is_ev, state->fuel, state->fuel_dist);
 }
 
 // +----+----+----+----

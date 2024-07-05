@@ -9,6 +9,9 @@
 #define __ETS_H__
 
 typedef struct {
+  // electric truck
+  bool is_ev;
+
   // for brightness control
   bool started;
   bool headlight;

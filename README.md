@@ -138,6 +138,10 @@ static constexpr bool CLOCK_DIM_HOURS[24] = { ... };
 
 ## Release History
 
+**2024-7-5**
+
+- Display "Batt" instead of "Fuel" for Renault E-Tech T and Scania S BEV.
+
 **2024-7-3**
 
 - ESP8266 support;
