@@ -1,4 +1,4 @@
-// ETS2 LCD Dashboard for ESP32C3
+// ETS2 LCD Dashboard for ESP8266/ESP32C3
 //
 // Copyright (C) 2023-2024 Ding Zhaojie <zhaojie_ding@msn.com>
 //
@@ -12,6 +12,7 @@
 #include "config.h"
 
 #define LIMIT(var, max) ((var) = ((var) > (max)) ? (max) : (var))
+
 #define LAZY_UPDATE(force, value, code) \
   do { \
     static typeof(value) cached_; \
@@ -20,6 +21,14 @@
       cached_ = (value); \
     } \
   } while (0)
+
+#define BLINK_IF(cond, msg1, msg2) \
+  ({ \
+    static bool show_ = true; \
+    show_ = (cond) ? !show_ : true; \
+    const char *msg_ = show_ ? (msg1) : (msg2); \
+    msg_; \
+  })
 
 static LiquidCrystal_I2C lcd(LCD_ADDR, 20, 4);
 static LargeDigit digit(&lcd);
@@ -94,25 +103,17 @@ static void update_limit(bool force, int limit, bool speeding) {
     DEBUG("Update speed limit: %d\n", limit);
   });
 
-  if (WARN_SPEEDING) {
-    // force update when speeding to blink the indicator
-    LAZY_UPDATE(force || speeding, speeding, {
-      static bool show = true;
-      show = speeding ? !show : true;
-      lcd.setCursor(15, 1);
-      lcd.print(show ? "Limit" : "     ");
-    });
-  }
+  // blink the label as speeding warning
+  auto label = BLINK_IF(speeding, "Limit", "     ");
+  LAZY_UPDATE(force, label, {
+    lcd.setCursor(15, 1);
+    lcd.printf("%s", label);
+  });
 }
 
-static void update_fuel(bool force, bool is_ev, int fuel, int fuel_dist) {
+static void update_fuel(bool force, bool is_ev, int fuel, int fuel_dist, bool warn) {
   LIMIT(fuel, 100);
   LIMIT(fuel_dist, 9999);
-
-  LAZY_UPDATE(force, is_ev, {
-    lcd.setCursor(0, 3);
-    lcd.printf("%s", is_ev ? "Batt" : "Fuel");
-  });
 
   LAZY_UPDATE(force, fuel_dist, {
     if (fuel_dist < 0) {
@@ -136,6 +137,13 @@ static void update_fuel(bool force, bool is_ev, int fuel, int fuel_dist) {
     lcd.print(bar);
     DEBUG("Update fuel: %d%%\n", fuel);
   });
+
+  // blink the label as fuel warning
+  auto label = BLINK_IF(warn, is_ev ? "Batt" : "Fuel", "    ");
+  LAZY_UPDATE(force, label, {
+    lcd.setCursor(0, 3);
+    lcd.printf("%s", label);
+  });
 }
 
 static void update_dash_clock(bool force, int hour, int minute) {
@@ -149,23 +157,22 @@ static void update_dash_clock(bool force, int hour, int minute) {
     lcd.printf("%02d", minute);
   });
 
-  if (CLOCK_BLINK) {
-    static bool show;
+  auto label = BLINK_IF(CLOCK_BLINK, ":", " ");
+  LAZY_UPDATE(force, label, {
     lcd.setCursor(2, 0);
-    lcd.print(show ? ":" : " ");
-    show = !show;
-  }
+    lcd.printf("%s", label);
+  });
 }
 
 static void dashboard_init(void) {
   lcd.setCursor(0, 0);
-  lcd.printf("%s \x7e     %s   :  ", CLOCK_ENABLE ? "  :  " : "Navi:", SHOW_MILE ? "mi" : "km");
+  lcd.printf("%s \x7e     %s   :  ", CLOCK_ENABLE ? "     " : "Navi:", SHOW_MILE ? "mi" : "km");
   lcd.setCursor(0, 1);
-  lcd.print("Cruis          Limit");
+  lcd.print("Cruis               ");
   lcd.setCursor(0, 2);
   lcd.print("[   ]          [   ]");
   lcd.setCursor(0, 3);
-  lcd.print("Fuel                ");
+  lcd.print("                    ");
 }
 
 void dashboard_update(EtsState *state, time_t time) {
@@ -173,7 +180,7 @@ void dashboard_update(EtsState *state, time_t time) {
   lcd_mode = LCD_DASHBOARD;
 
   // no backlight when engine off, dim when headlight on
-  update_backlight(force, state->started ? (state->headlight ? BACKLIGHT_NIGHT : BACKLIGHT_DAY) : BACKLIGHT_OFF);
+  update_backlight(force, state->on ? (state->headlight ? BACKLIGHT_NIGHT : BACKLIGHT_DAY) : BACKLIGHT_OFF);
 
   if (force) {
     dashboard_init();
@@ -187,7 +194,7 @@ void dashboard_update(EtsState *state, time_t time) {
   update_cruise(force, state->cruise);
   update_ets_dist(force, state->eta_dist);
   update_eta_time(force, state->eta_time);
-  update_fuel(force, state->is_ev, state->fuel, state->fuel_dist);
+  update_fuel(force, state->is_ev, state->fuel, state->fuel_dist, state->fuel_warn);
 }
 
 // +----+----+----+----

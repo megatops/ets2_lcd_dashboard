@@ -1,4 +1,4 @@
-// ETS2 LCD Dashboard for ESP32C3
+// ETS2 LCD Dashboard for ESP8266/ESP32C3
 //
 // Copyright (C) 2023-2024 Ding Zhaojie <zhaojie_ding@msn.com>
 //

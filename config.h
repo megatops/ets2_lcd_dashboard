@@ -1,4 +1,4 @@
-// ETS2 LCD Dashboard for ESP32C3
+// ETS2 LCD Dashboard for ESP8266/ESP32C3
 //
 // Copyright (C) 2024 Ding Zhaojie <zhaojie_ding@msn.com>
 //
@@ -20,10 +20,9 @@ constexpr int TIME_ZONE = 8 * 60;                   // local time zone in minute
 constexpr bool DST = false;                         // daylight saving time
 
 // Dashboard configurations
-constexpr bool CLOCK_BLINK = true;    // blink the ":" mark in dashboard clock
-constexpr bool CLOCK_12H = true;      // display dashboard clock in 12 hour
-constexpr bool WARN_SPEEDING = true;  // blink the speed limit when speeding
-constexpr bool SHOW_MILE = false;     // display with mile instead of km
+constexpr bool CLOCK_BLINK = true;  // blink the ":" mark in dashboard clock
+constexpr bool CLOCK_12H = true;    // display dashboard clock in 12 hour
+constexpr bool SHOW_MILE = false;   // display with mile instead of km
 
 // Backlight levels
 constexpr int BACKLIGHT_MAX = 255;

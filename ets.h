@@ -1,4 +1,4 @@
-// ETS2 LCD Dashboard for ESP32C3
+// ETS2 LCD Dashboard for ESP8266/ESP32C3
 //
 // Copyright (C) 2023-2024 Ding Zhaojie <zhaojie_ding@msn.com>
 //
@@ -13,19 +13,20 @@ typedef struct {
   bool is_ev;
 
   // for brightness control
-  bool started;
+  bool on;
   bool headlight;
+
+  // truck status
+  bool fuel_warn;
+  int fuel_dist;
+  int fuel;    // percentage
+  int cruise;  // 0 for off
+  int speed;
 
   // navigation
   int eta_dist;
   int eta_time;  // minutes
-
-  // truck status
-  int speed;
-  int cruise;  // 0 for off
-  int limit;   // 0 for no limit
-  int fuel;    // percentage
-  int fuel_dist;
+  int limit;     // 0 for no limit
 } EtsState;
 
 typedef enum {

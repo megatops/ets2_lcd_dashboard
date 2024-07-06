@@ -1,4 +1,4 @@
-// ETS2 LCD Dashboard for ESP32C3
+// ETS2 LCD Dashboard for ESP8266/ESP32C3
 //
 // Copyright (C) 2023-2024 Ding Zhaojie <zhaojie_ding@msn.com>
 //
@@ -60,12 +60,13 @@ GameState ets_telemetry_parse(String &json, EtsState *state) {
            avg = truck["fuelAverageConsumption"];
 
     state->is_ev = is_ev(truck["model"]);
-    state->started = truck["engineOn"];
+    state->on = truck["electricOn"];
     state->headlight = truck["lightsBeamLowOn"];
     state->speed = abs(round(km_conv((double)truck["speed"])));
     state->cruise = truck["cruiseControlOn"] ? km_conv(truck["cruiseControlSpeed"]) : 0;
     state->fuel = (tank > DBL_EPSILON) ? round(fuel * 100 / tank) : 0;
     state->fuel_dist = (avg > DBL_EPSILON) ? round(km_conv(fuel / avg)) : -1;  // -1 to keep previous value
+    state->fuel_warn = truck["fuelWarningOn"];
   }
 
   auto nav = ets["navigation"];

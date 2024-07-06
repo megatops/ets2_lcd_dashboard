@@ -76,10 +76,9 @@ More dashboard features could be customized with below settings (`config.h`):
 
 ```cpp
 // Dashboard configurations
-constexpr bool CLOCK_BLINK = false;   // blink the ":" mark in dashboard clock
-constexpr bool CLOCK_12H = true;      // display dashboard clock in 12 hour
-constexpr bool WARN_SPEEDING = true;  // blink the speed limit when speeding
-constexpr bool SHOW_MILE = false;     // display with mile instead of km
+constexpr bool CLOCK_BLINK = true;  // blink the ":" mark in dashboard clock
+constexpr bool CLOCK_12H = true;    // display dashboard clock in 12 hour
+constexpr bool SHOW_MILE = false;   // display with mile instead of km
 ```
 
 ## Build and Upload
@@ -138,9 +137,10 @@ static constexpr bool CLOCK_DIM_HOURS[24] = { ... };
 
 ## Release History
 
-**2024-7-5**
+**2024-7-6**
 
-- Display "Batt" instead of "Fuel" for Renault E-Tech T and Scania S BEV.
+- Display "Batt" instead of "Fuel" for Renault E-Tech T and Scania S BEV;
+- Fuel warning.
 
 **2024-7-3**
 
