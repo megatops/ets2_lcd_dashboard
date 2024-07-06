@@ -12,18 +12,24 @@
 #include "config.h"
 
 #define LIMIT(var, max) ((var) = ((var) > (max)) ? (max) : (var))
+#define LAZY_UPDATE(force, value, code) \
+  do { \
+    static typeof(value) cached_; \
+    if ((force) || (value) != cached_) { \
+      code; \
+      cached_ = (value); \
+    } \
+  } while (0)
 
 static LiquidCrystal_I2C lcd(LCD_ADDR, 20, 4);
 static LargeDigit digit(&lcd);
 static LcdMode lcd_mode = LCD_UNKNOWN;
 
 static void update_backlight(bool force, int level) {
-  static int old_level;
-  if (force || level != old_level) {
+  LAZY_UPDATE(force, level, {
     analogWrite(LCD_LED, level);
     DEBUG("Update backlight: %d\n", level);
-    old_level = level;
-  }
+  });
 }
 
 // +----+----+----+----
@@ -34,21 +40,16 @@ static void update_backlight(bool force, int level) {
 // +----+----+----+----
 
 static void update_speed(bool force, int speed) {
-  static int old = -1;
   LIMIT(speed, 199);
-
-  if (force || speed != old) {
+  LAZY_UPDATE(force, speed, {
     digit.print(5, 1, speed, 3, false);
     DEBUG("Update speed: %d\n", speed);
-    old = speed;
-  }
+  });
 }
 
 static void update_ets_dist(bool force, int eta_dist) {
-  static int old = -1;
   LIMIT(eta_dist, 9999);
-
-  if (force || eta_dist != old) {
+  LAZY_UPDATE(force, eta_dist, {
     lcd.setCursor(8, 0);
     if (eta_dist >= 1000) {
       lcd.printf("%4d", eta_dist);  // 8888km
@@ -56,27 +57,21 @@ static void update_ets_dist(bool force, int eta_dist) {
       lcd.printf("%3d ", eta_dist);  // 888 km
     }
     DEBUG("Update ETA distance: %d\n", eta_dist);
-    old = eta_dist;
-  }
+  });
 }
 
 static void update_eta_time(bool force, int eta_time) {
-  static int old = -1;
   LIMIT(eta_time, 99 * 60 + 59);
-
-  if (force || eta_time != old) {
+  LAZY_UPDATE(force, eta_time, {
     lcd.setCursor(15, 0);
     lcd.printf("%02d:%02d", eta_time / 60, eta_time % 60);
     DEBUG("Update ETA time: %d\n", eta_time);
-    old = eta_time;
-  }
+  });
 }
 
 static void update_cruise(bool force, int cruise) {
-  static int old = -1;
   LIMIT(cruise, 999);
-
-  if (force || cruise != old) {
+  LAZY_UPDATE(force, cruise, {
     lcd.setCursor(1, 2);
     if (cruise > 0) {
       lcd.printf("%3d", cruise);
@@ -84,15 +79,12 @@ static void update_cruise(bool force, int cruise) {
       lcd.print("---");
     }
     DEBUG("Update cruise: %d\n", cruise);
-    old = cruise;
-  }
+  });
 }
 
 static void update_limit(bool force, int limit, bool speeding) {
-  static int old_limit = -1;
   LIMIT(limit, 999);
-
-  if (force || limit != old_limit) {
+  LAZY_UPDATE(force, limit, {
     lcd.setCursor(16, 2);
     if (limit > 0) {
       lcd.printf("%3d", limit);
@@ -100,18 +92,16 @@ static void update_limit(bool force, int limit, bool speeding) {
       lcd.print("---");
     }
     DEBUG("Update speed limit: %d\n", limit);
-    old_limit = limit;
-  }
+  });
 
   if (WARN_SPEEDING) {
-    static bool old_speeding;
-    if (force || speeding || speeding != old_speeding) {
+    // force update when speeding to blink the indicator
+    LAZY_UPDATE(force || speeding, speeding, {
       static bool show = true;
       show = speeding ? !show : true;
       lcd.setCursor(15, 1);
       lcd.print(show ? "Limit" : "     ");
-      old_speeding = speeding;
-    }
+    });
   }
 }
 
@@ -119,28 +109,25 @@ static void update_fuel(bool force, bool is_ev, int fuel, int fuel_dist) {
   LIMIT(fuel, 100);
   LIMIT(fuel_dist, 9999);
 
-  static bool old_is_ev;
-  if (force || is_ev != old_is_ev) {
+  LAZY_UPDATE(force, is_ev, {
     lcd.setCursor(0, 3);
     lcd.printf("%s", is_ev ? "Batt" : "Fuel");
-    old_is_ev = is_ev;
-  }
+  });
 
-  static int old_dist = -1;
-  if (fuel_dist < 0) {
-    // keep the old display, if old < 0, set to 0
-    fuel_dist = old_dist < 0 ? 0 : old_dist;
-  }
-  if (force || fuel_dist != old_dist) {
+  LAZY_UPDATE(force, fuel_dist, {
+    if (fuel_dist < 0) {
+      if (!force) {
+        break;  // no need to update
+      }
+      fuel_dist = cached_;  // keep the old display
+    }
     lcd.setCursor(16, 3);
     lcd.printf("%4d", fuel_dist);
     DEBUG("Update fuel distance: %d\n", fuel_dist);
-    old_dist = fuel_dist;
-  }
+  });
 
-  static int old_seg = -1;
   int seg = round(fuel / 10.0);
-  if (force || seg != old_seg) {
+  LAZY_UPDATE(force, seg, {
     char bar[] = "\xA5\xA5\xA5\xA5\xA5\xA5\xA5\xA5\xA5\xA5";
     for (int i = 0; i < seg; i++) {
       bar[i] = 0xFF;
@@ -148,24 +135,19 @@ static void update_fuel(bool force, bool is_ev, int fuel, int fuel_dist) {
     lcd.setCursor(5, 3);
     lcd.print(bar);
     DEBUG("Update fuel: %d%%\n", fuel);
-    old_seg = seg;
-  }
+  });
 }
 
 static void update_dash_clock(bool force, int hour, int minute) {
-  static int old_hour = -1;
-  if (force || hour != old_hour) {
+  LAZY_UPDATE(force, hour, {
     lcd.setCursor(0, 0);
     lcd.printf("%02d", hour);
-    old_hour = hour;
-  }
+  });
 
-  static int old_minute = -1;
-  if (force || minute != old_minute) {
+  LAZY_UPDATE(force, minute, {
     lcd.setCursor(3, 0);
     lcd.printf("%02d", minute);
-    old_minute = minute;
-  }
+  });
 
   if (CLOCK_BLINK) {
     static bool show;
@@ -212,51 +194,44 @@ void dashboard_update(EtsState *state, time_t time) {
 //   BigBig.BigBig am
 //   NumNum.NumNum 00
 //   -----------------
-//   Sun, Jan 07, 2024
+//   Sun, Jan 17, 2024
 // +----+----+----+----
 
 static void update_date(bool force, int year, int month, int day, int weekday) {
-  static int old_year = -1, old_month = -1, old_day = -1;
-  if (force || year != old_year || month != old_month || day != old_day) {
+  LAZY_UPDATE(force, weekday, {
     lcd.setCursor(2, 3);
+    lcd.printf("%3.3s", dayShortStr(weekday));
+  });
 
-    // the dayShortStr() and monthShortStr() share the same string buffer,
-    // so we have to make a copy before calling another one.
-    char day_str[4];
-    snprintf(day_str, sizeof(day_str), "%s", dayShortStr(weekday));
-    lcd.printf("%s, %s%s%2d, %d", day_str, monthShortStr(month), (day < 10) ? "." : " ", day, year);
-    old_year = year;
-    old_month = month;
-    old_day = day;
-  }
+  LAZY_UPDATE(force, month, {
+    lcd.setCursor(7, 3);
+    lcd.printf("%3.3s", monthShortStr(month));
+  });
+
+  LAZY_UPDATE(force, day, {
+    lcd.setCursor(10, 3);
+    lcd.printf("%s%2d", (day < 10) ? "." : " ", day);
+  });
+
+  LAZY_UPDATE(force, year, {
+    lcd.setCursor(15, 3);
+    lcd.printf("%d", year);
+  });
 }
 
 static void update_time(bool force, int hour, int minute, int second, bool pm) {
-  static int old_hour = -1;
-  if (force || hour != old_hour) {
-    digit.print(2, 0, hour, 2, false);
-    old_hour = hour;
-  }
+  LAZY_UPDATE(force, hour, digit.print(2, 0, hour, 2, false));
+  LAZY_UPDATE(force, minute, digit.print(9, 0, minute, 2, true));
 
-  static int old_minute = -1;
-  if (force || minute != old_minute) {
-    digit.print(9, 0, minute, 2, true);
-    old_minute = minute;
-  }
-
-  static int old_second = -1;
-  if (force || second != old_second) {
+  LAZY_UPDATE(force, second, {
     lcd.setCursor(16, 1);
     lcd.printf("%02d", second);
-    old_second = second;
-  }
+  });
 
-  static int old_pm;
-  if (force || pm != old_pm) {
+  LAZY_UPDATE(force, pm, {
     lcd.setCursor(16, 0);
     lcd.print(pm ? "pm" : "am");
-    old_pm = pm;
-  }
+  });
 }
 
 static void clock_init(void) {
@@ -267,7 +242,7 @@ static void clock_init(void) {
   lcd.setCursor(0, 2);
   lcd.print("  ----------------- ");
   lcd.setCursor(0, 3);
-  lcd.print("                    ");
+  lcd.print("     ,       ,      ");
 }
 
 void clock_update(time_t time) {
