@@ -162,7 +162,7 @@ static constexpr bool CLOCK_DIM_HOURS[24] = { ... };
 
 - Initial release.
 
-## External links
+## External Links
 
 Forums
 

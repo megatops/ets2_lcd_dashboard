@@ -22,17 +22,12 @@
     } \
   } while (0)
 
-#define BLINK_IF(cond, msg1, msg2) \
-  ({ \
-    static bool show_ = true; \
-    show_ = (cond) ? !show_ : true; \
-    const char *msg_ = show_ ? (msg1) : (msg2); \
-    msg_; \
-  })
+#define BLINK_IF(cond, msg1, msg2) ((!(cond) || blink_show) ? (msg1) : (msg2))
 
 static LiquidCrystal_I2C lcd(LCD_ADDR, 20, 4);
 static LargeDigit digit(&lcd);
 static LcdMode lcd_mode = LCD_UNKNOWN;
+static bool blink_show;  // synchronize the blinks
 
 static void update_backlight(bool force, int level) {
   LAZY_UPDATE(force, level, {
@@ -178,6 +173,7 @@ static void dashboard_init(void) {
 void dashboard_update(EtsState *state, time_t time) {
   bool force = (lcd_mode != LCD_DASHBOARD);  // mode change needs a full update
   lcd_mode = LCD_DASHBOARD;
+  blink_show = !blink_show;
 
   // no backlight when engine off, dim when headlight on
   update_backlight(force, state->on ? (state->headlight ? BACKLIGHT_NIGHT : BACKLIGHT_DAY) : BACKLIGHT_OFF);
