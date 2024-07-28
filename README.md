@@ -2,7 +2,7 @@
 
 ETS2 LCD dashboard is a client of [ETS2 Telemetry Web Server](https://github.com/Funbit/ets2-telemetry-server) made with ESP8266 / ESP32-C3. It can connect to the telemetry server via Wi-Fi, work as a wireless digital dashboard for your ETS2/ATS trucks. Theoretically, the code should be able to port to any MCU boards with integrated Wi-Fi support (such as Raspberry Pi Pico W, other ESP32 series boards).
 
-![connections](./ets2_lcd_dashboard.png)
+![photo](media/dashboard.jpg)
 
 The dashboard can display:
 
@@ -27,15 +27,17 @@ The prices listed below are the retail prices I purchased in China in October 20
 | LCD 2004 acrylic display case (optional) | CNY 2.8 + CNY 2 shipping fee  |
 |                                          | Total: CNY 29.4 (USD 4.2)     |
 
+![connections](media/ets2_lcd_dashboard.png)
+
 Pin connections:
 
-| LCD 2004 I2C                                             | ESP8266 / ESP32-C3 |
-| -------------------------------------------------------- | ------------------ |
-| `VCC`                                                    | `VBUS`             |
-| `GND`                                                    | `GND`              |
-| `SDA`                                                    | `GPIO4`            |
-| `SCL`                                                    | `GPIO5`            |
-| `LED` (optional, refer the "Adaptive Backlight" section) | `GPIO2`            |
+| ESP8266 / ESP32-C3 | LCD 2004 I2C                                             |
+| ------------------ | -------------------------------------------------------- |
+| `VBUS`             | `VCC`                                                    |
+| `GND`              | `GND`                                                    |
+| `GPIO2`            | `LED` (optional, refer the "Adaptive Backlight" section) |
+| `GPIO4`            | `SDA`                                                    |
+| `GPIO5`            | `SCL`                                                    |
 
 ## Configuration
 
