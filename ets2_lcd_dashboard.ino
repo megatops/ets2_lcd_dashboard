@@ -86,7 +86,7 @@ static void clock_tick(void) {
   clock_update(last_update);
 }
 
-static GameState ets_telemetry_query(EtsState *state) {
+static GameState ets_telemetry_query(EtsState &state) {
   GameState game = GAME_SERVER_DOWN;
 
   http.begin(client, ETS_API);
@@ -114,8 +114,8 @@ static void dashboard_timer_func(void) {
   bool active = (dashboard_timer.getInterval() == ACTIVE_DELAY);
 
   // try to query the telemetry API server
-  EtsState state = {};
-  GameState game = ets_telemetry_query(&state);
+  EtsState state{};
+  GameState game = ets_telemetry_query(state);
 
   if (game >= GAME_READY) {
     // the game is running, speed up polling for faster responses
@@ -138,7 +138,7 @@ static void dashboard_timer_func(void) {
     // temporary failure recovered, or completely inactive.
   } else if (!CLOCK_ENABLE || game == GAME_DRIVING) {
     // only update dashboard when driving
-    dashboard_update(&state, ntp.getEpochTime());
+    dashboard_update(state, ntp.getEpochTime());
   } else if (lcd_get_mode() != LCD_CLOCK) {
     clock_update(ntp.getEpochTime());
   }  // otherwise let clock_tick() to update
@@ -154,8 +154,8 @@ void setup() {
   if (CLOCK_ENABLE) {
     clock_initial_sync();
   } else {
-    EtsState s = {};
-    dashboard_update(&s, 0);
+    EtsState s{};
+    dashboard_update(s, 0);
   }
 }
 

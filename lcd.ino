@@ -25,7 +25,7 @@
 #define BLINK_IF(cond, msg1, msg2) ((!(cond) || blink_show) ? (msg1) : (msg2))
 
 static LiquidCrystal_I2C lcd(LCD_ADDR, 20, 4);
-static LargeDigit digit(&lcd);
+static LargeDigit digit(lcd);
 static LcdMode lcd_mode = LCD_UNKNOWN;
 static bool blink_show;  // synchronize the blinks
 
@@ -170,13 +170,13 @@ static void dashboard_init(void) {
   lcd.print("                    ");
 }
 
-void dashboard_update(EtsState *state, time_t time) {
+void dashboard_update(EtsState &state, time_t time) {
   bool force = (lcd_mode != LCD_DASHBOARD);  // mode change needs a full update
   lcd_mode = LCD_DASHBOARD;
   blink_show = !blink_show;
 
   // no backlight when engine off, dim when headlight on
-  update_backlight(force, state->on ? (state->headlight ? BACKLIGHT_NIGHT : BACKLIGHT_DAY) : BACKLIGHT_OFF);
+  update_backlight(force, state.on ? (state.headlight ? BACKLIGHT_NIGHT : BACKLIGHT_DAY) : BACKLIGHT_OFF);
 
   if (force) {
     dashboard_init();
@@ -185,12 +185,12 @@ void dashboard_update(EtsState *state, time_t time) {
   if (CLOCK_ENABLE) {
     update_dash_clock(force, CLOCK_12H ? hourFormat12(time) : hour(time), minute(time));
   }
-  update_limit(force, state->limit, (state->limit > 0) && (state->speed > state->limit));
-  update_speed(force, state->speed);
-  update_cruise(force, state->cruise);
-  update_ets_dist(force, state->eta_dist);
-  update_eta_time(force, state->eta_time);
-  update_fuel(force, state->is_ev, state->fuel, state->fuel_dist, state->fuel_warn);
+  update_limit(force, state.limit, (state.limit > 0) && (state.speed > state.limit));
+  update_speed(force, state.speed);
+  update_cruise(force, state.cruise);
+  update_ets_dist(force, state.eta_dist);
+  update_eta_time(force, state.eta_time);
+  update_fuel(force, state.is_ev, state.fuel, state.fuel_dist, state.fuel_warn);
 }
 
 // +----+----+----+----

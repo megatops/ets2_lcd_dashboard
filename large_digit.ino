@@ -16,13 +16,13 @@
 
 class LargeDigit {
 public:
-  LargeDigit(LiquidCrystal_I2C *lcd);
+  LargeDigit(LiquidCrystal_I2C &lcd);
   void begin();
   void clear(int x, int y, int count);
   void print(int x, int y, unsigned int num, int width, bool leadingZero);
 
 private:
-  LiquidCrystal_I2C *_lcd;
+  LiquidCrystal_I2C &lcd_;
   void writeDigit(int x, int y, int digit);
   void writeSpace(int x, int y);
 
@@ -31,12 +31,11 @@ private:
   static constexpr int CHAR_HEIGHT = 2;
 };
 
-LargeDigit::LargeDigit(LiquidCrystal_I2C *lcd) {
-  _lcd = lcd;
-}
+LargeDigit::LargeDigit(LiquidCrystal_I2C &lcd)
+  : lcd_(lcd) {}
 
 void LargeDigit::begin() {
-  static const uint8_t Strokes[][8] = {
+  static const uint8_t Strokes[][8]{
     [0] = { 0b11100,
             0b11110,
             0b11110,
@@ -104,13 +103,13 @@ void LargeDigit::begin() {
   };
 
   for (int i = 0; i < (int)ARRAY_SIZE(Strokes); i++) {
-    _lcd->createChar(i, (uint8_t *)Strokes[i]);
+    lcd_.createChar(i, (uint8_t *)Strokes[i]);
   }
 }
 
 void LargeDigit::writeDigit(int x, int y, int digit) {
   // 0-7: index of Strokes
-  static const uint8_t Font[][CHAR_HEIGHT][CHAR_WIDTH] = {
+  static const uint8_t Font[][CHAR_HEIGHT][CHAR_WIDTH]{
     [0] = { { 1, 7, 0 },
             { 1, 5, 0 } },
     [1] = { { ' ', 1, ' ' },
@@ -134,17 +133,17 @@ void LargeDigit::writeDigit(int x, int y, int digit) {
   };
 
   for (int row = 0; row < CHAR_HEIGHT; row++) {
-    _lcd->setCursor(x, y + row);
+    lcd_.setCursor(x, y + row);
     for (int i = 0; i < CHAR_WIDTH; i++) {
-      _lcd->write(Font[digit][row][i]);
+      lcd_.write(Font[digit][row][i]);
     }
   }
 }
 
 void LargeDigit::writeSpace(int x, int y) {
   for (int row = 0; row < CHAR_HEIGHT; row++) {
-    _lcd->setCursor(x, y + row);
-    _lcd->print("   ");
+    lcd_.setCursor(x, y + row);
+    lcd_.print("   ");
   }
 }
 

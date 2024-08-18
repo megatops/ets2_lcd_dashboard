@@ -134,7 +134,7 @@ constexpr int BACKLIGHT_CLOCK = 128;     // normal time
 constexpr int BACKLIGHT_CLOCK_DIM = 24;  // night light
 
 // Hours to dim the clock (1:00am ~ 5:59am by default)
-static constexpr bool CLOCK_DIM_HOURS[24] = { ... };
+static constexpr bool CLOCK_DIM_HOURS[24]{ ... };
 ```
 
 ## Release History

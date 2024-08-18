@@ -37,7 +37,7 @@ constexpr int BACKLIGHT_CLOCK = 128;     // normal time
 constexpr int BACKLIGHT_CLOCK_DIM = 24;  // night light
 
 // Hours to dim the clock (1:00am ~ 5:59am by default)
-static constexpr bool CLOCK_DIM_HOURS[24] = {
+static constexpr bool CLOCK_DIM_HOURS[24]{
   [0] = false,
   [1] = true,
   [2] = true,
@@ -65,7 +65,7 @@ static constexpr bool CLOCK_DIM_HOURS[24] = {
 };
 
 // electric truck models
-static const char *EV_TRUCKS[] = {
+static const char *EV_TRUCKS[]{
   "E-Tech T",
   "S BEV",
   nullptr,
