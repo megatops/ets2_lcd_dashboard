@@ -13,7 +13,7 @@
 #include "config.h"
 
 static double km_conv(double km) {
-  return SHOW_MILE ? (km / 1.6) : km;
+  return SHOW_MILE ? (km / 1.61) : km;
 }
 
 // ISO8601: "0001-01-05T05:11:00Z"
