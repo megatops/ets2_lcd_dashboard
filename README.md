@@ -139,6 +139,10 @@ static constexpr bool CLOCK_DIM_HOURS[24]{ ... };
 
 ## Release History
 
+**2024-9-30**
+
+- More accurate speed display in ATS.
+
 **2024-7-6**
 
 - Display "Batt" instead of "Fuel" for Renault E-Tech T and Scania S BEV;
@@ -146,7 +150,7 @@ static constexpr bool CLOCK_DIM_HOURS[24]{ ... };
 
 **2024-7-3**
 
-- ESP8266 support;
+- ESP8266 support, tested with LOLIN D1 Mini (only cost CNY 7.6, about $1);
 - Changed LED pin from `GPIO6` to `GPIO2` to compatible with ESP8266;
 - 12/24 hour dashboard clock format switch (`CLOCK_12H`).
 

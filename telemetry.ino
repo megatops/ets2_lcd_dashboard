@@ -63,7 +63,7 @@ GameState ets_telemetry_parse(String &json, EtsState &state) {
     state.on = truck["electricOn"];
     state.headlight = truck["lightsBeamLowOn"];
     state.speed = abs(round(km_conv((double)truck["speed"])));
-    state.cruise = truck["cruiseControlOn"] ? km_conv(truck["cruiseControlSpeed"]) : 0;
+    state.cruise = truck["cruiseControlOn"] ? round(km_conv(truck["cruiseControlSpeed"])) : 0;
     state.fuel = (tank > DBL_EPSILON) ? round(fuel * 100 / tank) : 0;
     state.fuel_dist = (avg > DBL_EPSILON) ? round(km_conv(fuel / avg)) : -1;  // -1 to keep previous value
     state.fuel_warn = truck["fuelWarningOn"];
@@ -71,7 +71,7 @@ GameState ets_telemetry_parse(String &json, EtsState &state) {
 
   auto nav = ets["navigation"];
   if (JSON.typeof(nav).equals("object")) {
-    state.limit = km_conv(nav["speedLimit"]);
+    state.limit = round(km_conv(nav["speedLimit"]));
     state.eta_dist = round(km_conv((double)nav["estimatedDistance"] / 1000));
     state.eta_time = to_minutes(nav["estimatedTime"]);
   }
