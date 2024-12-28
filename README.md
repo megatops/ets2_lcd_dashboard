@@ -94,7 +94,7 @@ The project is an Arduino IDE Sketch. You will need to add ESP32-C3 board suppor
 Then install below libraries:
 
 - `ArduinHttpClient` by Arduino
-- `Arduino_JSON` by Arduino
+- `ArduinoJson` by Benoit Blanchon
 - `LiquidCrystal I2C` by Frank de Brabander
 - `NTPClient` by Fabrice Weinberg
 - `SoftwareTimer` by ILoveMemes

@@ -8,9 +8,12 @@
 #include <cfloat>
 #include <cstring>
 #include <time.h>
-#include <Arduino_JSON.h>
+#include <ArduinoJson.h>
 #include "ets.h"
 #include "config.h"
+
+static constexpr int JSON_FILTER_SIZE = 512;
+static constexpr int JSON_DOC_SIZE = 1024;
 
 static double km_conv(double km) {
   return SHOW_MILE ? (km / 1.61) : km;
@@ -32,15 +35,55 @@ static bool is_ev(const char *model) {
   return false;
 }
 
+// only parse the fields we need to save (lots of) memory
+static DeserializationOption::Filter &ets_telemetry_filter(void) {
+  static StaticJsonDocument<JSON_FILTER_SIZE> f;
+  static auto filter = DeserializationOption::Filter(f);
+
+  if (f.isNull()) {
+    Serial.println("Initialize JSON filter.");
+
+    auto g = f.createNestedObject("game");
+    g["connected"] = true;
+    g["paused"] = true;
+
+    auto t = f.createNestedObject("truck");
+    // t["blinkerLeftActive"] = true;
+    // t["blinkerRightActive"] = true;
+    // t["engineOn"] = true;
+    // t["lightsBeamHighOn"] = true;
+    // t["lightsDashboardOn"] = true;
+    // t["make"] = true;
+    // t["odometer"] = true;
+    t["cruiseControlOn"] = true;
+    t["cruiseControlSpeed"] = true;
+    t["electricOn"] = true;
+    t["fuel"] = true;
+    t["fuelAverageConsumption"] = true;
+    t["fuelCapacity"] = true;
+    t["fuelWarningOn"] = true;
+    t["lightsBeamLowOn"] = true;
+    t["model"] = true;
+    t["speed"] = true;
+
+    auto n = f.createNestedObject("navigation");
+    n["estimatedDistance"] = true;
+    n["estimatedTime"] = true;
+    n["speedLimit"] = true;
+  }
+  return filter;
+}
+
 GameState ets_telemetry_parse(String &json, EtsState &state) {
-  JSONVar ets = JSON.parse(json);
-  if (JSON.typeof(ets) == "undefined") {
-    Serial.println("Parsing JSON failed!");
+  StaticJsonDocument<JSON_DOC_SIZE> ets;
+  auto err = deserializeJson(ets, json, ets_telemetry_filter());
+  if (err) {
+    Serial.printf("Parsing JSON failed: %s\n", err.c_str());
     return GAME_NOT_START;
   }
 
-  auto game = ets["game"];
-  if (!JSON.typeof(game).equals("object")) {
+  JsonObject game = ets["game"];
+  if (game.isNull()) {
     Serial.println("JSON: no \"game\" object.");
     return GAME_NOT_START;
   }
@@ -53,8 +96,8 @@ GameState ets_telemetry_parse(String &json, EtsState &state) {
     return GAME_READY;
   }
 
-  auto truck = ets["truck"];
-  if (JSON.typeof(truck).equals("object")) {
+  JsonObject truck = ets["truck"];
+  if (!truck.isNull()) {
     double fuel = truck["fuel"],
            tank = truck["fuelCapacity"],
            avg = truck["fuelAverageConsumption"];
@@ -69,8 +112,8 @@ GameState ets_telemetry_parse(String &json, EtsState &state) {
     state.fuel_warn = truck["fuelWarningOn"];
   }
 
-  auto nav = ets["navigation"];
-  if (JSON.typeof(nav).equals("object")) {
+  JsonObject nav = ets["navigation"];
+  if (!nav.isNull()) {
     state.limit = round(km_conv(nav["speedLimit"]));
     state.eta_dist = round(km_conv((double)nav["estimatedDistance"] / 1000));
     state.eta_time = to_minutes(nav["estimatedTime"]);

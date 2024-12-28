@@ -96,7 +96,7 @@ static GameState ets_telemetry_query(EtsState &state) {
   http.setTimeout(HTTP_READ_TIMEOUT);
 
   int http_code = http.GET();
-  if (http_code > 0) {
+  if (http_code == HTTP_CODE_OK) {
     String json = http.getString();
     game = ets_telemetry_parse(json, state);
   } else {
