@@ -1,6 +1,6 @@
 # ETS2 LCD Dashboard
 
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/megatops/ets2_lcd_dashboard) ![GitHub License](https://img.shields.io/github/license/megatops/ets2_lcd_dashboard?logo=license) ![GitHub top language](https://img.shields.io/github/languages/top/megatops/ets2_lcd_dashboard) ![GitHub contributors](https://img.shields.io/github/contributors/megatops/ets2_lcd_dashboard) ![GitHub Repo stars](https://img.shields.io/github/stars/megatops/ets2_lcd_dashboard) ![GitHub forks](https://img.shields.io/github/forks/megatops/ets2_lcd_dashboard)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/megatops/ets2_lcd_dashboard) ![GitHub License](https://img.shields.io/github/license/megatops/ets2_lcd_dashboard?logo=license) ![GitHub top language](https://img.shields.io/github/languages/top/megatops/ets2_lcd_dashboard) ![GitHub contributors](https://img.shields.io/github/contributors-anon/megatops/ets2_lcd_dashboard) ![GitHub forks](https://img.shields.io/github/forks/megatops/ets2_lcd_dashboard) ![GitHub Repo stars](https://img.shields.io/github/stars/megatops/ets2_lcd_dashboard)
 
 ETS2 LCD dashboard is a client of [ETS2 Telemetry Web Server](https://github.com/Funbit/ets2-telemetry-server) made with ESP8266 / ESP32-C3. It can connect to the telemetry server via Wi-Fi, work as a wireless digital dashboard for your ETS2/ATS trucks. Theoretically, the code should be able to port to any MCU boards with integrated Wi-Fi support (such as Raspberry Pi Pico W, other ESP32 series boards).
 
