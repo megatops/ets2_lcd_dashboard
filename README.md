@@ -141,6 +141,11 @@ static constexpr bool CLOCK_DIM_HOURS[24]{ ... };
 
 ## Release History
 
+**2026-1-17**
+
+- Battery display for DAF XF Electric.
+- Set default fuel capacity for Iveco S-Way, etc.
+
 **2024-9-30**
 
 - More accurate speed display in ATS.

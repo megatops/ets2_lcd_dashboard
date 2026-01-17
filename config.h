@@ -68,7 +68,11 @@ static constexpr bool CLOCK_DIM_HOURS[24]{
 static const char *EV_TRUCKS[]{
   "E-Tech T",
   "S BEV",
+  "XF Electric",
   nullptr,
 };
+
+// fallback fuel capacity on data error (Iveco S-Way, etc.)
+constexpr double DEFAULT_TANK_SIZE = 1200;
 
 #endif

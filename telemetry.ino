@@ -102,12 +102,15 @@ GameState ets_telemetry_parse(String &json, EtsState &state) {
            tank = truck["fuelCapacity"],
            avg = truck["fuelAverageConsumption"];
 
+    // set default fuel capacity on data error
+    tank = (tank > DBL_EPSILON) ? tank : DEFAULT_TANK_SIZE;
+
     state.is_ev = is_ev(truck["model"]);
     state.on = truck["electricOn"];
     state.headlight = truck["lightsBeamLowOn"];
     state.speed = abs(round(km_conv((double)truck["speed"])));
     state.cruise = truck["cruiseControlOn"] ? round(km_conv(truck["cruiseControlSpeed"])) : 0;
-    state.fuel = (tank > DBL_EPSILON) ? round(fuel * 100 / tank) : 0;
+    state.fuel = round(fuel * 100 / tank);
     state.fuel_dist = (avg > DBL_EPSILON) ? round(km_conv(fuel / avg)) : -1;  // -1 to keep previous value
     state.fuel_warn = truck["fuelWarningOn"];
   }
