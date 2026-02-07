@@ -1,6 +1,6 @@
 // ETS2 LCD Dashboard for ESP8266/ESP32C3
 //
-// Copyright (C) 2024 Ding Zhaojie <zhaojie_ding@msn.com>
+// Copyright (C) 2024-2026 Ding Zhaojie <zhaojie_ding@msn.com>
 //
 // This work is licensed under the terms of the GNU GPL, version 2 or later.
 // See the COPYING file in the top-level directory.
@@ -8,16 +8,19 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
+#include <cstdint>
+#include "board.h"
+
 // Wi-Fi and API server
 constexpr const char *SSID = "YOUR WIFI SSID";
 constexpr const char *PASSWORD = "YOUR WIFI PASSWORD";
 constexpr const char *ETS_API = "http://YOUR_PC_IP:25555/api/ets2/telemetry";
 
 // Clock settings
-constexpr bool CLOCK_ENABLE = true;                 // false to disable the clock feature
-constexpr const char *NTP_SERVER = "pool.ntp.org";  // "ntp.ntsc.ac.cn" for mainland China
-constexpr int TIME_ZONE = 8 * 60;                   // local time zone in minutes
-constexpr bool DST = false;                         // daylight saving time
+constexpr bool CLOCK_ENABLE = true;                   // false to disable the clock feature
+constexpr const char *NTP_SERVER = "pool.ntp.org";    // "ntp.ntsc.ac.cn" for mainland China
+constexpr int TIME_ZONE = 8 * 60;                     // local time zone in minutes
+constexpr bool DST = false;                           // daylight saving time
 
 // Dashboard configurations
 constexpr bool CLOCK_BLINK = true;  // blink the ":" mark in dashboard clock
@@ -37,7 +40,7 @@ constexpr int BACKLIGHT_CLOCK = 128;     // normal time
 constexpr int BACKLIGHT_CLOCK_DIM = 24;  // night light
 
 // Hours to dim the clock (1:00am ~ 5:59am by default)
-static constexpr bool CLOCK_DIM_HOURS[24]{
+constexpr bool CLOCK_DIM_HOURS[24]{
   [0] = false,
   [1] = true,
   [2] = true,
@@ -64,15 +67,46 @@ static constexpr bool CLOCK_DIM_HOURS[24]{
   [23] = false,
 };
 
-// electric truck models
-static const char *EV_TRUCKS[]{
+// ETS2: electric truck models
+constexpr const char *EV_TRUCKS[]{
   "E-Tech T",
   "S BEV",
   "XF Electric",
   nullptr,
 };
 
-// fallback fuel capacity on data error (Iveco S-Way, etc.)
+// ETS2: fallback fuel capacity on data error (Iveco S-Way, etc.)
 constexpr double DEFAULT_TANK_SIZE = 1200;
+
+// Shift indicator (Forza only)
+constexpr uint8_t RGB_LEVEL = 3;
+
+// Engine load to RGB LED map
+constexpr float RGB_LOAD_MAP[RGB_LED_NUM] = {
+  40.0, 50.0, 60.0,  // green
+  70.0, 75.0, 80.0,  // yellow
+  85.0, 85.0,        // red
+};
+
+struct RgbColor {
+  uint8_t r;
+  uint8_t g;
+  uint8_t b;
+};
+
+constexpr RgbColor RGB_COLOR_MAP[RGB_LED_NUM] = {
+  { 0, 255, 0 },  // green
+  { 0, 255, 0 },
+  { 0, 255, 0 },
+  { 128, 255, 0 },  // yellow green
+  { 255, 255, 0 },  // yellow
+  { 255, 128, 0 },  // orange
+  { 255, 0, 0 },    // red
+  { 255, 0, 0 },
+};
+
+// Forza: shift zone
+constexpr float FORZA_SHIFT_ZONE = 85.0;
+constexpr float FORZA_RED_ZONE = 90.0;
 
 #endif

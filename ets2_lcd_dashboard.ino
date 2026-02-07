@@ -19,26 +19,28 @@
 #include <HTTPClient.h>
 #endif
 
-#include "ets.h"
 #include "config.h"
 #include "board.h"
+#include "telemetry.hpp"
+#include "dashboard.hpp"
 
 // Server timeouts
-static constexpr int MAX_FAILURE = 10;             // max retries before idle
-static constexpr int ACTIVE_DELAY = 500;           // API query interval in game
+static constexpr int ETS2_MAX_FAILURE = 10;    // max retries before idle
+static constexpr int ETS2_ACTIVE_DELAY = 500;  // ETS2 API query interval in game
+static constexpr int FORZA_MAX_FAILURE = 5 * FORZA_PPS;
+static constexpr int FORZA_ACTIVE_DELAY = 1000 / FORZA_PPS;
 static constexpr int IDLE_DELAY = 5000;            // API query interval when idle
+static constexpr int INIT_DELAY = 1000;            // API query interval when just startup (quicker to back to game)
 static constexpr int NTP_UPDATE = 60 * 60 * 1000;  // interval to sync clock with NTP
-static constexpr int HTTP_CONN_TIMEOUT = 200;      // timeout for connect
-static constexpr int HTTP_READ_TIMEOUT = 450;      // timeout for TCP read
 
-static WiFiClient client;
-static WiFiUDP ntpUDP;
-static HTTPClient http;
+static WiFiUDP ntpUDP, forzaUDP;
+static HTTPClient etsHTTP;
 static NTPClient ntp(ntpUDP, NTP_SERVER, (TIME_ZONE - DST * 60) * 60, NTP_UPDATE);
 
-static void wifi_connect(void (*tick)() = nullptr) {
+static void WifiConnect(void (*tick)() = nullptr) {
   Serial.printf("Connecting to %s .", SSID);
 
+  WiFi.mode(WIFI_STA);
   WiFi.begin(SSID, PASSWORD);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
@@ -49,11 +51,12 @@ static void wifi_connect(void (*tick)() = nullptr) {
     }
   }
 
-  Serial.print(" Local IP: ");
-  Serial.println(WiFi.localIP());
+  Serial.printf(" Local IP: %s\n", WiFi.localIP().toString().c_str());
+  Serial.printf("Listening Forza telemetry on: %u\n", FORZA_PORT);
+  forzaUDP.begin(FORZA_PORT);
 }
 
-static void clock_initial_sync(void) {
+static void ClockInitialSync(void) {
   Serial.printf("NTP syncing with %s .", NTP_SERVER);
 
   ntp.begin();
@@ -62,18 +65,17 @@ static void clock_initial_sync(void) {
     Serial.print(".");
   }
 
-  Serial.print(" Local Time: ");
-  Serial.println(ntp.getFormattedTime());
-  clock_update(ntp.getEpochTime());
+  Serial.printf(" Local Time: %s\n", ntp.getFormattedTime().c_str());
+  ClockUpdate(ntp.getEpochTime());
 }
 
-static void clock_tick(void) {
-  if (!CLOCK_ENABLE || lcd_get_mode() != LCD_CLOCK) {
+static void ClockTick(void) {
+  if (!CLOCK_ENABLE || dashMode != DASH_CLOCK) {
     return;
   }
 
-  static time_t last_update = -1;
-  if (ntp.getEpochTime() == last_update) {
+  static time_t lastUpdate = -1;
+  if (ntp.getEpochTime() == lastUpdate) {
     return;
   }
 
@@ -82,80 +84,94 @@ static void clock_tick(void) {
   }
 
   // the time may have been updated by NTP, fetch it again
-  last_update = ntp.getEpochTime();
-  clock_update(last_update);
+  lastUpdate = ntp.getEpochTime();
+  ClockUpdate(lastUpdate);
 }
 
-static GameState ets_telemetry_query(EtsState &state) {
-  GameState game = GAME_SERVER_DOWN;
+static SoftwareTimer dashboardTimer(INIT_DELAY, &DashboardTimerFunc);
 
-  http.begin(client, ETS_API);
-#ifndef ESP8266
-  http.setConnectTimeout(HTTP_CONN_TIMEOUT);
-#endif
-  http.setTimeout(HTTP_READ_TIMEOUT);
-
-  int http_code = http.GET();
-  if (http_code == HTTP_CODE_OK) {
-    String json = http.getString();
-    game = ets_telemetry_parse(json, state);
-  } else {
-    Serial.printf("Invalid response: %d!\n", http_code);
-  }
-  http.end();
-
-  return game;
-}
-
-static SoftwareTimer dashboard_timer(ACTIVE_DELAY, &dashboard_timer_func);
-
-static void dashboard_timer_func(void) {
-  static int failed;
-  bool active = (dashboard_timer.getInterval() == ACTIVE_DELAY);
-
-  // try to query the telemetry API server
-  EtsState state{};
-  GameState game = ets_telemetry_query(state);
-
+static void DashboardTimerAdjust(const char *name, bool &active, int &failed,
+                                 GameState game, int maxFailure, int activeDelay) {
   if (game >= GAME_READY) {
     // the game is running, speed up polling for faster responses
     if (!active) {
-      dashboard_timer.setInterval(ACTIVE_DELAY);
+      Serial.printf("%s become active.\n", name);
+      dashboardTimer.setInterval(activeDelay);
+      active = true;
     }
     failed = 0;
 
-  } else if (active && ++failed >= MAX_FAILURE) {
+  } else if (active && ++failed >= maxFailure) {
     // slow down the frequency of queries to reduce the API
     // server (running on your gaming PC) resource usage
-    Serial.println("Server is inactive.");
-    dashboard_timer.setInterval(IDLE_DELAY);
+    Serial.printf("%s is inactive.\n", name);
+    dashboardTimer.setInterval(IDLE_DELAY);
     active = false;
   }
+}
 
-  if (active && game < GAME_READY) {
+static void DashboardTimerFunc(void) {
+  static int failed;
+  bool forzaActive = false, ets2Active = false;
+
+  switch (dashboardTimer.getInterval()) {
+    case FORZA_ACTIVE_DELAY:
+      forzaActive = true;
+      break;
+    case ETS2_ACTIVE_DELAY:
+      ets2Active = true;
+      break;
+    default:
+      break;
+  }
+
+  GameState game = GAME_SERVER_DOWN;
+  EtsState etsState{};
+  ForzaState forzaState{};
+
+  if (!forzaActive) {
+    // ETS2 query
+    game = Ets2TelemetryQuery(etsHTTP, etsState);
+    DashboardTimerAdjust("ETS2 Telemetry Server", ets2Active, failed,
+                         game, ETS2_MAX_FAILURE, ETS2_ACTIVE_DELAY);
+  }
+
+  if (!ets2Active) {
+    // Forza query
+    game = ForzaTelemetryQuery(forzaUDP, forzaState);
+    DashboardTimerAdjust("Forza", forzaActive, failed,
+                         game, FORZA_MAX_FAILURE, FORZA_ACTIVE_DELAY);
+  }
+
+  if ((ets2Active || forzaActive) && game < GAME_READY) {
     // sometimes the API server may return failure, don't
     // update the dashboard in this case, just wait for the
     // temporary failure recovered, or completely inactive.
   } else if (!CLOCK_ENABLE || game == GAME_DRIVING) {
     // only update dashboard when driving
-    dashboard_update(state, ntp.getEpochTime());
-  } else if (lcd_get_mode() != LCD_CLOCK) {
-    clock_update(ntp.getEpochTime());
+    if (ets2Active) {
+      Ets2DashboardUpdate(etsState, ntp.getEpochTime());
+    } else if (forzaActive) {
+      ForzaDashboardUpdate(forzaState);
+    }
+  } else if (dashMode != DASH_CLOCK) {
+    ClockUpdate(ntp.getEpochTime());
   }  // otherwise let clock_tick() to update
 }
 
 void setup() {
   Serial.begin(SERIAL_BAUDRATE);
-  pinMode(LCD_LED, OUTPUT);
-  lcd_init(I2C_SDA, I2C_SCL, I2C_FREQ);
-  http.setReuse(true);
-  wifi_connect();
+  pinMode(LCD_LED_PWM, OUTPUT);
+  pinMode(RGB_LED_PIN, OUTPUT);
+  LcdInit(I2C_SDA, I2C_SCL, I2C_FREQ);
+  etsHTTP.setReuse(true);
+  WifiConnect();
 
   if (CLOCK_ENABLE) {
-    clock_initial_sync();
+    ClockInitialSync();
   } else {
     EtsState s{};
-    dashboard_update(s, 0);
+    Ets2DashboardUpdate(s, 0);
   }
 }
 
@@ -163,10 +179,11 @@ void loop() {
   if (WiFi.status() != WL_CONNECTED) {
     Serial.println("WiFi disconnected.");
     ntp.end();
-    wifi_connect(&clock_tick);
+    forzaUDP.stop();
+    WifiConnect(&ClockTick);
     ntp.begin();
   }
 
-  dashboard_timer.tick();
-  clock_tick();
+  dashboardTimer.tick();
+  ClockTick();
 }

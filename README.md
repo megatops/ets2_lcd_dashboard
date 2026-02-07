@@ -1,17 +1,24 @@
-# ETS2 LCD Dashboard
+# ETS2 / Forza LCD Dashboard
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/megatops/ets2_lcd_dashboard) ![GitHub License](https://img.shields.io/github/license/megatops/ets2_lcd_dashboard?logo=license) ![GitHub top language](https://img.shields.io/github/languages/top/megatops/ets2_lcd_dashboard) ![GitHub contributors](https://img.shields.io/github/contributors-anon/megatops/ets2_lcd_dashboard) ![GitHub forks](https://img.shields.io/github/forks/megatops/ets2_lcd_dashboard) ![GitHub Repo stars](https://img.shields.io/github/stars/megatops/ets2_lcd_dashboard)
 
-ETS2 LCD dashboard is a client of [ETS2 Telemetry Web Server](https://github.com/Funbit/ets2-telemetry-server) made with ESP8266 / ESP32-C3. It can connect to the telemetry server via Wi-Fi, work as a wireless digital dashboard for your ETS2/ATS trucks. Theoretically, the code should be able to port to any MCU boards with integrated Wi-Fi support (such as Raspberry Pi Pico W, other ESP32 series boards).
+ETS2 / Forza LCD dashboard can be used with [ETS2 Telemetry Web Server](https://github.com/Funbit/ets2-telemetry-server) and Forza Motorsport / Horizon, made with ESP8266 / ESP32-C3. It can connect to the game via Wi-Fi, work as a wireless digital dashboard for your ETS2/ATS trucks and Forza racing cars. Theoretically, the code should be able to port to any MCU boards with integrated Wi-Fi support (such as Raspberry Pi Pico W, other ESP32 series boards).
 
 ![photo](media/dashboard.jpg)
 
 The dashboard can display:
 
-- Estimated distance and time,
-- Current speed, cruise control speed and speed limit (kph/mph),
-- Fuel and estimated fuel distance,
-- Time and date (sync with NTP).
+- ETS2/ATS:
+  - Estimated distance and time,
+  - Current speed, cruise control speed and speed limit (kph/mph),
+  - Fuel and estimated fuel distance,
+  - Time and date (sync with NTP).
+- Forza:
+  - RPM bar (linear and converging style),
+  - Best lap time, last lap time, current lap time,
+  - Current speed, gear,
+  - Current lap number, race position.
+  - Professional dashboard style for S+ class.
 
 Check this video to see how it looks in action:
 
@@ -35,11 +42,19 @@ Pin connections:
 
 | ESP8266 / ESP32-C3 | LCD 2004 I2C                                             |
 | ------------------ | -------------------------------------------------------- |
-| `VBUS`             | `VCC`                                                    |
+| `VBUS` / `5V`      | `VCC`                                                    |
 | `GND`              | `GND`                                                    |
 | `GPIO2`            | `LED` (optional, refer the "Adaptive Backlight" section) |
 | `GPIO4`            | `SDA`                                                    |
 | `GPIO5`            | `SCL`                                                    |
+
+[Optional] Shift indicator LEDs (for Forza only):
+
+| ESP8266 / ESP32-C3 | 8x WS2812 LED |
+| ------------------ | ------------- |
+| `VBUS` / `5V`      | `VCC`         |
+| `GND`              | `GND`         |
+| `GPIO0`            | `IN`          |
 
 ## Configuration
 
@@ -95,6 +110,7 @@ The project is an Arduino IDE Sketch. You will need to add ESP32-C3 board suppor
 
 Then install below libraries:
 
+- `Adafruit_NeoPixel` by Adafruit
 - `ArduinHttpClient` by Arduino
 - `ArduinoJson` by Benoit Blanchon
 - `LiquidCrystal I2C` by Frank de Brabander
@@ -112,13 +128,13 @@ To build and upload the firmware:
 
  3. Open the `ets2_lcd_dashboard` folder, click "Upload" button to build and upload.
 
-It is highly recommended to open the "Serial Monitor" (`921600` baud) in Arduino IDE for troubleshooting during the first run.
+It is highly recommended to open the "Serial Monitor" (`2000000` baud) in Arduino IDE for troubleshooting during the first run.
 
 ## Adaptive Backlight
 
 By default, the backlight of 2004 I2C LCD can only be set to on or off. To let the firmware control the backlight brightness, the jumper on the I2C daughter board should be removed, and the top jumper pin (labeled with `LED`) should be connected to `GPIO2`. Then the backlight will be controlled as below:
 
-- Dashboard mode:
+- Dashboard mode (ETS2/ATS):
   - Completely off when the truck engine is stopped;
   - Dimmer when headlight is on (for night).
 - Clock mode:
@@ -139,7 +155,22 @@ constexpr int BACKLIGHT_CLOCK_DIM = 24;  // night light
 static constexpr bool CLOCK_DIM_HOURS[24]{ ... };
 ```
 
+## Forza Data Out Setup
+
+Refer [Forza Motorsport "Data Out" Documentation](https://support.forzamotorsport.net/hc/en-us/articles/21742934024211-Forza-Motorsport-Data-Out-Documentation) to setup the Data Out feature in Forza. Ensure to assign a static IPv4 address for ESP32-C3 in your router (typically in the DHCP reservation settings) to receive the telemetry data packets. The default port is `8888`.
+
+If you are playing Forza on Windows, the setup will be more complicated than Xbox. The Windows version can only send data to the localhost address `127.0.0.1` (other IPs will not work). So you have to use an UDP forwarder to forward the data packets to the ESP32-C3.
+
+Here are some tested open source UDP forwarders:
+
+- [Sokit](https://github.com/sinpolib/sokit): With an easy to use GUI.
+- [udpfwd](https://github.com/D0x45/udpfwd): Very simple command line tool.
+
 ## Release History
+
+**2026-2-15**
+
+- Support Forza Motorsport 7 & 2023, Forza Horizon 4 & 5.
 
 **2026-1-17**
 
