@@ -21,6 +21,7 @@
 static constexpr int HTTP_CONN_TIMEOUT = 200;  // timeout for connect
 static constexpr int HTTP_READ_TIMEOUT = 450;  // timeout for TCP read
 
+// Calculated with: https://arduinojson.org/v6/assistant/
 static constexpr int JSON_FILTER_SIZE = 512;
 static constexpr int JSON_DOC_SIZE = 1024;
 
@@ -41,6 +42,36 @@ static bool IsEV(const char *model) {
 }
 
 // only parse the fields we need to save (lots of) memory
+//
+// ArduinoJson v6 filter:
+// {
+//   "game": {
+//     "connected": true,
+//     "paused": true
+//   },
+//   "truck": {
+//     "blinkerLeftActive": true,
+//     "blinkerRightActive": true,
+//     "cruiseControlOn": true,
+//     "cruiseControlSpeed": true,
+//     "electricOn": true,
+//     "fuel": true,
+//     "fuelAverageConsumption": true,
+//     "fuelCapacity": true,
+//     "fuelWarningOn": true,
+//     "lightsBeamHighOn": true,
+//     "lightsBeamLowOn": true,
+//     "lightsParkingOn": true,
+//     "model": true,
+//     "parkBrakeOn": true,
+//     "speed": true
+//   },
+//   "navigation": {
+//     "estimatedTime": true,
+//     "estimatedDistance": true,
+//     "speedLimit": true
+//   }
+// }
 static DeserializationOption::Filter &ets2TelemetryFilter(void) {
   static StaticJsonDocument<JSON_FILTER_SIZE> f;
   static auto filter = DeserializationOption::Filter(f);
@@ -53,13 +84,8 @@ static DeserializationOption::Filter &ets2TelemetryFilter(void) {
     g["paused"] = true;
 
     auto t = f.createNestedObject("truck");
-    // t["blinkerLeftActive"] = true;
-    // t["blinkerRightActive"] = true;
-    // t["engineOn"] = true;
-    // t["lightsBeamHighOn"] = true;
-    // t["lightsDashboardOn"] = true;
-    // t["make"] = true;
-    // t["odometer"] = true;
+    t["blinkerLeftActive"] = true;
+    t["blinkerRightActive"] = true;
     t["cruiseControlOn"] = true;
     t["cruiseControlSpeed"] = true;
     t["electricOn"] = true;
@@ -67,8 +93,11 @@ static DeserializationOption::Filter &ets2TelemetryFilter(void) {
     t["fuelAverageConsumption"] = true;
     t["fuelCapacity"] = true;
     t["fuelWarningOn"] = true;
+    t["lightsBeamHighOn"] = true;
     t["lightsBeamLowOn"] = true;
+    t["lightsParkingOn"] = true;
     t["model"] = true;
+    t["parkBrakeOn"] = true;
     t["speed"] = true;
 
     auto n = f.createNestedObject("navigation");
@@ -112,19 +141,27 @@ static GameState Ets2TelemetryParse(String &json, EtsState &state) {
 
     state.isEV = IsEV(truck["model"]);
     state.on = truck["electricOn"];
+
     state.headlight = truck["lightsBeamLowOn"];
-    state.speed = abs(round(KmConv((double)truck["speed"])));
-    state.cruise = truck["cruiseControlOn"] ? round(KmConv(truck["cruiseControlSpeed"])) : 0;
-    state.fuel = round(fuel * 100 / tank);
-    state.fuelDist = (avg > DBL_EPSILON) ? round(KmConv(fuel / avg)) : -1;  // -1 to keep previous value
+    state.highBeam = truck["lightsBeamHighOn"];
+    state.leftBlinker = truck["blinkerLeftActive"];
+    state.rightBlinker = truck["blinkerRightActive"];
+    state.parkingLight = truck["lightsParkingOn"];
+    state.parkBrake = truck["parkBrakeOn"];
+
     state.fuelWarn = truck["fuelWarningOn"];
+    state.fuelDist = (avg > DBL_EPSILON) ? round(KmConv(fuel / avg)) : -1;  // -1 to keep previous value
+    state.fuel = round(fuel * 100 / tank);
+
+    state.cruise = truck["cruiseControlOn"] ? round(KmConv(truck["cruiseControlSpeed"])) : 0;
+    state.speed = abs(round(KmConv((double)truck["speed"])));
   }
 
   JsonObject nav = ets["navigation"];
   if (!nav.isNull()) {
-    state.limit = round(KmConv(nav["speedLimit"]));
     state.etaDist = round(KmConv((double)nav["estimatedDistance"] / 1000));
     state.etaTime = ToMinutes(nav["estimatedTime"]);
+    state.limit = round(KmConv(nav["speedLimit"]));
   }
 
   return GAME_DRIVING;

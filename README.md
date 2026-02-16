@@ -12,13 +12,15 @@ The dashboard can display:
   - Estimated distance and time,
   - Current speed, cruise control speed and speed limit (kph/mph),
   - Fuel and estimated fuel distance,
-  - Time and date (sync with NTP).
+  - Time and date (sync with NTP),
+  - (Optional) LED indicators: Left/right blinkers, low/high beam, park brake.
 - Forza:
   - RPM bar (linear and converging style),
   - Best lap time, last lap time, current lap time,
   - Current speed, gear,
   - Current lap number, race position.
-  - Professional dashboard style for S+ class.
+  - Professional dashboard style for S+ class,
+  - (Optional) LED shift indicators.
 
 Check this video to see how it looks in action:
 
@@ -48,13 +50,13 @@ Pin connections:
 | `GPIO4`            | `SDA`                                                    |
 | `GPIO5`            | `SCL`                                                    |
 
-[Optional] Shift indicator LEDs (for Forza only):
+(Optional) LED indicators:
 
-| ESP8266 / ESP32-C3 | 8x WS2812 LED |
-| ------------------ | ------------- |
-| `VBUS` / `5V`      | `VCC`         |
-| `GND`              | `GND`         |
-| `GPIO0`            | `IN`          |
+| ESP8266 / ESP32-C3 | 8x WS2812 LED Stick |
+| ------------------ | ------------------- |
+| `VBUS` / `5V`      | `VCC`               |
+| `GND`              | `GND`               |
+| `GPIO0`            | `IN`                |
 
 ## Configuration
 
@@ -167,6 +169,10 @@ Here are some tested open source UDP forwarders:
 - [udpfwd](https://github.com/D0x45/udpfwd): Very simple command line tool.
 
 ## Release History
+
+**2026-2-17**
+
+- Support ETS2/ATS LED indicators.
 
 **2026-2-15**
 

@@ -283,6 +283,7 @@ void ForzaDashboardUpdate(ForzaState &state) {
   static int blinkCounter;
 
   BacklightUpdate(force, BACKLIGHT_DAY);
+  static_cast<void>(RgbLevelUpdate(force, RGB_LEVEL_DAY));
 
   if (force) {
     DashboardInit();

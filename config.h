@@ -35,6 +35,11 @@ constexpr int BACKLIGHT_OFF = 0;
 constexpr int BACKLIGHT_DAY = 200;    // for daytime, brighter
 constexpr int BACKLIGHT_NIGHT = 128;  // when headlight on, dimmer
 
+// RGB bar brightness level
+constexpr uint8_t RGB_LEVEL_DAY = 2;
+constexpr uint8_t RGB_LEVEL_NIGHT = 1;
+constexpr uint8_t RGB_LEVEL_OFF = 0;
+
 // Backlight levels for clock
 constexpr int BACKLIGHT_CLOCK = 128;     // normal time
 constexpr int BACKLIGHT_CLOCK_DIM = 24;  // night light
@@ -78,9 +83,6 @@ constexpr const char *EV_TRUCKS[]{
 // ETS2: fallback fuel capacity on data error (Iveco S-Way, etc.)
 constexpr double DEFAULT_TANK_SIZE = 1200;
 
-// Shift indicator (Forza only)
-constexpr uint8_t RGB_LEVEL = 3;
-
 // Engine load to RGB LED map
 constexpr float RGB_LOAD_MAP[RGB_LED_NUM] = {
   40.0, 50.0, 60.0,  // green
@@ -98,10 +100,10 @@ constexpr RgbColor RGB_COLOR_MAP[RGB_LED_NUM] = {
   { 0, 255, 0 },  // green
   { 0, 255, 0 },
   { 0, 255, 0 },
-  { 128, 255, 0 },  // yellow green
   { 255, 255, 0 },  // yellow
-  { 255, 128, 0 },  // orange
-  { 255, 0, 0 },    // red
+  { 255, 255, 0 },
+  { 255, 255, 0 },
+  { 255, 0, 0 },  // red
   { 255, 0, 0 },
 };
 

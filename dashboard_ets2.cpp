@@ -133,6 +133,63 @@ static void UpdateClock(bool force, int hour, int minute) {
   });
 }
 
+// [LBinker] [] [lowBeam] [highBeam] [] [parkBrake] [] [RBlinker]
+//     0      1     2         3       4      5       6     7
+static void UpdateRGBs(bool force, bool leftBlinker, bool rightBlinker, bool lowBeam, bool highBeam, bool parkBrake) {
+  static constexpr RgbColor GREEN{ 0, 255, 0 };
+  static constexpr RgbColor BLUE{ 0, 0, 255 };
+  static constexpr RgbColor RED{ 255, 0, 0 };
+  static constexpr RgbColor OFF{ 0, 0, 0 };
+
+  bool changed = false;
+
+  if (leftBlinker) {
+    RgbSet(0, blinkShow ? GREEN : OFF);
+    changed = true;
+  }
+  LAZY_UPDATE(force, leftBlinker, {
+    if (!leftBlinker) {
+      RgbSet(0, OFF);
+      changed = true;
+    }
+    DEBUG("Update leftBlinker: %d\n", leftBlinker);
+  });
+
+  if (rightBlinker) {
+    RgbSet(7, blinkShow ? GREEN : OFF);
+    changed = true;
+  }
+  LAZY_UPDATE(force, rightBlinker, {
+    if (!rightBlinker) {
+      RgbSet(7, OFF);
+      changed = true;
+    }
+    DEBUG("Update rightBlinker: %d\n", rightBlinker);
+  });
+
+  LAZY_UPDATE(force, lowBeam, {
+    RgbSet(2, lowBeam ? GREEN : OFF);
+    changed = true;
+    DEBUG("Update lowBeam: %d\n", lowBeam);
+  });
+
+  LAZY_UPDATE(force, highBeam, {
+    RgbSet(3, highBeam ? BLUE : OFF);
+    changed = true;
+    DEBUG("Update highBeam: %d\n", highBeam);
+  });
+
+  LAZY_UPDATE(force, parkBrake, {
+    RgbSet(5, parkBrake ? RED : OFF);
+    changed = true;
+    DEBUG("Update highBeam: %d\n", parkBrake);
+  });
+
+  if (changed) {
+    rgbBar.show();
+  }
+}
+
 static void DashboardInit(void) {
   RgbOFF();
   lcd.setCursor(0, 0);
@@ -152,6 +209,7 @@ void Ets2DashboardUpdate(EtsState &state, time_t time) {
 
   // no backlight when engine off, dim when headlight on
   BacklightUpdate(force, state.on ? (state.headlight ? BACKLIGHT_NIGHT : BACKLIGHT_DAY) : BACKLIGHT_OFF);
+  bool freshRgb = RgbLevelUpdate(force, state.on ? (state.headlight ? RGB_LEVEL_NIGHT : RGB_LEVEL_DAY) : RGB_LEVEL_OFF);
 
   if (force) {
     DashboardInit();
@@ -166,4 +224,9 @@ void Ets2DashboardUpdate(EtsState &state, time_t time) {
   UpdateEtaDist(force, state.etaDist);
   UpdateEtaTime(force, state.etaTime);
   UpdateFuel(force, state.isEV, state.fuel, state.fuelDist, state.fuelWarn);
+
+  // dynamic RGB brightness change needs a full update (workaround for NexPixel bug)
+  UpdateRGBs(force || freshRgb, state.leftBlinker, state.rightBlinker,
+             state.parkingLight && state.headlight, state.parkingLight && state.highBeam,
+             state.parkBrake);
 }

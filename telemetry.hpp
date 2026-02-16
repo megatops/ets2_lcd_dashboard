@@ -26,7 +26,14 @@ struct EtsState {
 
   // for brightness control
   bool on;
-  bool headlight;
+  bool headlight;  // low beam
+
+  // for LED indicators
+  bool highBeam;
+  bool leftBlinker;
+  bool rightBlinker;
+  bool parkingLight;
+  bool parkBrake;
 
   // truck status
   bool fuelWarn;

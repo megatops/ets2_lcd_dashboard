@@ -23,6 +23,18 @@ void BacklightUpdate(bool force, int level) {
   });
 }
 
+// NeoPixel brightness changes is buggy, the caller should redraw all the pixels
+// or the colors may be changed or lost after set.
+bool RgbLevelUpdate(bool force, uint8_t level) {
+  bool changed = false;
+  LAZY_UPDATE(force, level, {
+    changed = true;
+    rgbBar.setBrightness(level);
+    DEBUG("Update RGB brightness: %d\n", level);
+  });
+  return changed;
+}
+
 void RgbOFF(void) {
   rgbBar.clear();
   rgbBar.show();
@@ -34,7 +46,7 @@ void RgbSet(int i, const RgbColor &color) {
 
 void LcdInit(int sda, int scl, uint32_t freq) {
   rgbBar.begin();
-  rgbBar.setBrightness(RGB_LEVEL);
+  static_cast<void>(RgbLevelUpdate(true, RGB_LEVEL_DAY));
   RgbOFF();
 
   Wire.begin(sda, scl, freq);

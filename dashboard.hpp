@@ -44,6 +44,7 @@ void LcdInit(int sda, int scl, uint32_t freq);
 void BacklightUpdate(bool force, int level);
 void RgbOFF(void);
 void RgbSet(int i, const RgbColor &color);
+bool RgbLevelUpdate(bool force, uint8_t level);
 
 void ClockUpdate(time_t time);
 void Ets2DashboardUpdate(EtsState &state, time_t time);
