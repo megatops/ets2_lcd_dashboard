@@ -13,7 +13,7 @@ The dashboard can display:
   - Current speed, cruise control speed and speed limit (kph/mph),
   - Fuel and estimated fuel distance,
   - Time and date (sync with NTP),
-  - (Optional) LED indicators: Left/right blinkers, low/high beam, park brake.
+  - (Optional) LED indicators: left blinker, air pressure, parking light, low beam, high beam, beacon, park brake, right blinker.
 - Forza:
   - RPM bar (linear and converging style),
   - Best lap time, last lap time, current lap time,
@@ -22,9 +22,15 @@ The dashboard can display:
   - Professional dashboard style for S+ class,
   - (Optional) LED shift indicators.
 
-Check this video to see how it looks in action:
+Check the videos to see how it looks in action:
 
-[![video](https://img.youtube.com/vi/SX45oxnS2IU/0.jpg)](https://www.youtube.com/watch?v=SX45oxnS2IU)
+- ETS2/ATS series:
+
+  [![video](https://img.youtube.com/vi/SX45oxnS2IU/0.jpg)](https://www.youtube.com/watch?v=SX45oxnS2IU)
+
+- Forza series:
+
+  [![video](https://img.youtube.com/vi/D59rC5C5DTI/0.jpg)](https://www.youtube.com/watch?v=D59rC5C5DTI)
 
 ## Hardware
 

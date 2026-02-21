@@ -29,11 +29,14 @@ struct EtsState {
   bool headlight;  // low beam
 
   // for LED indicators
+  bool parkingLight;
   bool highBeam;
   bool leftBlinker;
   bool rightBlinker;
-  bool parkingLight;
+  bool beacon;
   bool parkBrake;
+  bool airWarn;
+  bool airEmergency;
 
   // truck status
   bool fuelWarn;

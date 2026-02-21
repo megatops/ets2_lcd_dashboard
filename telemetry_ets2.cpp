@@ -50,6 +50,8 @@ static bool IsEV(const char *model) {
 //     "paused": true
 //   },
 //   "truck": {
+//     "airPressureEmergencyOn": true,
+//     "airPressureWarningOn": true,
 //     "blinkerLeftActive": true,
 //     "blinkerRightActive": true,
 //     "cruiseControlOn": true,
@@ -59,6 +61,7 @@ static bool IsEV(const char *model) {
 //     "fuelAverageConsumption": true,
 //     "fuelCapacity": true,
 //     "fuelWarningOn": true,
+//     "lightsBeaconOn": true,
 //     "lightsBeamHighOn": true,
 //     "lightsBeamLowOn": true,
 //     "lightsParkingOn": true,
@@ -84,6 +87,8 @@ static DeserializationOption::Filter &ets2TelemetryFilter(void) {
     g["paused"] = true;
 
     auto t = f.createNestedObject("truck");
+    t["airPressureEmergencyOn"] = true;
+    t["airPressureWarningOn"] = true;
     t["blinkerLeftActive"] = true;
     t["blinkerRightActive"] = true;
     t["cruiseControlOn"] = true;
@@ -93,6 +98,7 @@ static DeserializationOption::Filter &ets2TelemetryFilter(void) {
     t["fuelAverageConsumption"] = true;
     t["fuelCapacity"] = true;
     t["fuelWarningOn"] = true;
+    t["lightsBeaconOn"] = true;
     t["lightsBeamHighOn"] = true;
     t["lightsBeamLowOn"] = true;
     t["lightsParkingOn"] = true;
@@ -142,12 +148,15 @@ static GameState Ets2TelemetryParse(String &json, EtsState &state) {
     state.isEV = IsEV(truck["model"]);
     state.on = truck["electricOn"];
 
+    state.airEmergency = truck["airPressureEmergencyOn"];
+    state.airWarn = truck["airPressureWarningOn"];
+    state.beacon = truck["lightsBeaconOn"];
     state.headlight = truck["lightsBeamLowOn"];
     state.highBeam = truck["lightsBeamHighOn"];
     state.leftBlinker = truck["blinkerLeftActive"];
-    state.rightBlinker = truck["blinkerRightActive"];
-    state.parkingLight = truck["lightsParkingOn"];
     state.parkBrake = truck["parkBrakeOn"];
+    state.parkingLight = truck["lightsParkingOn"];
+    state.rightBlinker = truck["blinkerRightActive"];
 
     state.fuelWarn = truck["fuelWarningOn"];
     state.fuelDist = (avg > DBL_EPSILON) ? round(KmConv(fuel / avg)) : -1;  // -1 to keep previous value

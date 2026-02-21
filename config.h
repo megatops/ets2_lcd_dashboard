@@ -83,6 +83,20 @@ constexpr const char *EV_TRUCKS[]{
 // ETS2: fallback fuel capacity on data error (Iveco S-Way, etc.)
 constexpr double DEFAULT_TANK_SIZE = 1200;
 
+// ETS2: LED indicators map
+enum LedSlot {
+  LBLINKER,
+  AIR_WARN,
+  PARKING_LIGHT,
+  LOW_BEAM,
+  HIGH_BEAM,
+  BEACON,
+  PARK_BRAKE,
+  RBLINKER,
+  SLOT_MAX,
+};
+static_assert(LedSlot::SLOT_MAX == RGB_LED_NUM, "Unexpected LED slots");
+
 // Engine load to RGB LED map
 constexpr float RGB_LOAD_MAP[RGB_LED_NUM] = {
   40.0, 50.0, 60.0,  // green
