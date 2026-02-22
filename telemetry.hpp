@@ -34,9 +34,10 @@ struct EtsState {
   bool leftBlinker;
   bool rightBlinker;
   bool beacon;
+  bool brake;
   bool parkBrake;
   bool airWarn;
-  bool airEmergency;
+  bool airEmerg;
 
   // truck status
   bool fuelWarn;

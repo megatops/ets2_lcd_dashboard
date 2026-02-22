@@ -134,45 +134,39 @@ static void UpdateClock(bool force, int hour, int minute) {
 }
 
 static void UpdateLEDs(bool force, bool leftBlinker, bool rightBlinker,
-                       bool parkingLight, bool lowBeam, bool highBeam, bool beacon,
-                       bool airWarn, bool airEmergency, bool parkBrake) {
-  static constexpr RgbColor GREEN{ 0, 255, 0 };
-  static constexpr RgbColor BLUE{ 0, 0, 255 };
-  static constexpr RgbColor ORANGE{ 255, 128, 0 };
-  static constexpr RgbColor RED{ 255, 0, 0 };
-  static constexpr RgbColor OFF{ 0, 0, 0 };
-
+                       bool lowBeam, bool highBeam, bool beacon,
+                       bool airWarn, bool airEmerg, bool brake, bool parkBrake) {
   bool changed = false;
 
   // special: blinkers
   if (leftBlinker) {
-    RgbSet(LedSlot::LBLINKER, blinkShow ? GREEN : OFF);
+    RgbSet(LedSlot::LBLINKER, blinkShow ? LED_INFO : LED_OFF);
     changed = true;
   }
   LAZY_UPDATE(force, leftBlinker, {
     if (!leftBlinker) {
-      RgbSet(LedSlot::LBLINKER, OFF);
+      RgbSet(LedSlot::LBLINKER, LED_OFF);
       changed = true;
     }
     DEBUG("Update leftBlinker: %d\n", leftBlinker);
   });
 
   if (rightBlinker) {
-    RgbSet(LedSlot::RBLINKER, blinkShow ? GREEN : OFF);
+    RgbSet(LedSlot::RBLINKER, blinkShow ? LED_INFO : LED_OFF);
     changed = true;
   }
   LAZY_UPDATE(force, rightBlinker, {
     if (!rightBlinker) {
-      RgbSet(LedSlot::RBLINKER, OFF);
+      RgbSet(LedSlot::RBLINKER, LED_OFF);
       changed = true;
     }
     DEBUG("Update rightBlinker: %d\n", rightBlinker);
   });
 
   // special: multi-state
-  int airWarnLevel = airEmergency ? 2 : (airWarn ? 1 : 0);
+  int airWarnLevel = airEmerg ? 2 : (airWarn ? 1 : 0);
   LAZY_UPDATE(force, airWarnLevel, {
-    RgbSet(LedSlot::AIR_WARN, (airWarnLevel == 2) ? RED : ((airWarnLevel == 1) ? ORANGE : OFF));
+    RgbSet(LedSlot::AIR_WARN, (airWarnLevel == 2) ? LED_ALERT : ((airWarnLevel == 1) ? LED_WARN : LED_OFF));
     changed = true;
     DEBUG("Update airWarnLevel: %d\n", airWarnLevel);
   });
@@ -180,18 +174,18 @@ static void UpdateLEDs(bool force, bool leftBlinker, bool rightBlinker,
 #define UPDATE_INDICATOR(flag, slot, color) \
   do { \
     LAZY_UPDATE(force, (flag), { \
-      RgbSet((slot), (flag) ? (color) : OFF); \
+      RgbSet((slot), (flag) ? (color) : LED_OFF); \
       changed = true; \
       DEBUG("Update " #flag ": %d\n", (flag)); \
     }); \
   } while (0)
 
   // normal on/off indicators
-  UPDATE_INDICATOR(parkingLight, LedSlot::PARKING_LIGHT, GREEN);
-  UPDATE_INDICATOR(lowBeam, LedSlot::LOW_BEAM, GREEN);
-  UPDATE_INDICATOR(highBeam, LedSlot::HIGH_BEAM, BLUE);
-  UPDATE_INDICATOR(beacon, LedSlot::BEACON, ORANGE);
-  UPDATE_INDICATOR(parkBrake, LedSlot::PARK_BRAKE, RED);
+  UPDATE_INDICATOR(beacon, LedSlot::BEACON, LED_WARN);
+  UPDATE_INDICATOR(brake, LedSlot::BRAKE, LED_INFO);
+  UPDATE_INDICATOR(highBeam, LedSlot::HIGH_BEAM, LED_NOTICE);
+  UPDATE_INDICATOR(lowBeam, LedSlot::LOW_BEAM, LED_INFO);
+  UPDATE_INDICATOR(parkBrake, LedSlot::PARK_BRAKE, LED_ALERT);
 
 #undef UPDATE_INDICATOR
 
@@ -237,6 +231,6 @@ void Ets2DashboardUpdate(EtsState &state, time_t time) {
 
   // dynamic RGB brightness change needs a full update (workaround for NeoPixel bug)
   UpdateLEDs(force || freshRgb, state.leftBlinker, state.rightBlinker,
-             state.parkingLight, state.parkingLight && state.headlight, state.parkingLight && state.highBeam, state.beacon,
-             state.airWarn, state.airEmergency, state.parkBrake);
+             state.parkingLight && state.headlight, state.parkingLight && state.highBeam, state.beacon,
+             state.airWarn, state.airEmerg, state.brake, state.parkBrake);
 }

@@ -37,7 +37,7 @@ constexpr int BACKLIGHT_NIGHT = 128;  // when headlight on, dimmer
 
 // RGB bar brightness level
 constexpr uint8_t RGB_LEVEL_DAY = 2;
-constexpr uint8_t RGB_LEVEL_NIGHT = 1;
+constexpr uint8_t RGB_LEVEL_NIGHT = 2;  // don't set below 2, or it can only display 2^3 colors, which cannot display orange
 constexpr uint8_t RGB_LEVEL_OFF = 0;
 
 // Backlight levels for clock
@@ -87,7 +87,7 @@ constexpr double DEFAULT_TANK_SIZE = 1200;
 enum LedSlot {
   LBLINKER,
   AIR_WARN,
-  PARKING_LIGHT,
+  BRAKE,
   LOW_BEAM,
   HIGH_BEAM,
   BEACON,
@@ -97,19 +97,28 @@ enum LedSlot {
 };
 static_assert(LedSlot::SLOT_MAX == RGB_LED_NUM, "Unexpected LED slots");
 
-// Engine load to RGB LED map
-constexpr float RGB_LOAD_MAP[RGB_LED_NUM] = {
-  40.0, 50.0, 60.0,  // green
-  70.0, 75.0, 80.0,  // yellow
-  85.0, 85.0,        // red
-};
-
 struct RgbColor {
   uint8_t r;
   uint8_t g;
   uint8_t b;
 };
 
+// ETS2: LED indicator colors
+constexpr RgbColor
+  LED_ALERT{ 128, 0, 0 },   // red, half the brightness
+  LED_WARN{ 255, 128, 0 },  // orange
+  LED_NOTICE{ 0, 0, 255 },  // blue (for high beam)
+  LED_INFO{ 0, 128, 0 },    // green, half the brightness
+  LED_OFF{ 0, 0, 0 };
+
+// Forza: engine load to RGB LED map
+constexpr float RGB_LOAD_MAP[RGB_LED_NUM] = {
+  40.0, 50.0, 60.0,  // green
+  70.0, 75.0, 80.0,  // yellow
+  85.0, 85.0,        // red
+};
+
+// Forza: shift indicator colors
 constexpr RgbColor RGB_COLOR_MAP[RGB_LED_NUM] = {
   { 0, 255, 0 },  // green
   { 0, 255, 0 },

@@ -13,7 +13,7 @@ The dashboard can display:
   - Current speed, cruise control speed and speed limit (kph/mph),
   - Fuel and estimated fuel distance,
   - Time and date (sync with NTP),
-  - (Optional) LED indicators: left blinker, air pressure, parking light, low beam, high beam, beacon, park brake, right blinker.
+  - (Optional) LED indicators: left blinker, air pressure, brake, low beam, high beam, beacon, park brake, right blinker.
 - Forza:
   - RPM bar (linear and converging style),
   - Best lap time, last lap time, current lap time,

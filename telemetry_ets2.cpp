@@ -64,6 +64,7 @@ static bool IsEV(const char *model) {
 //     "lightsBeaconOn": true,
 //     "lightsBeamHighOn": true,
 //     "lightsBeamLowOn": true,
+//     "lightsBrakeOn": true,
 //     "lightsParkingOn": true,
 //     "model": true,
 //     "parkBrakeOn": true,
@@ -101,6 +102,7 @@ static DeserializationOption::Filter &ets2TelemetryFilter(void) {
     t["lightsBeaconOn"] = true;
     t["lightsBeamHighOn"] = true;
     t["lightsBeamLowOn"] = true;
+    t["lightsBrakeOn"] = true;
     t["lightsParkingOn"] = true;
     t["model"] = true;
     t["parkBrakeOn"] = true;
@@ -148,9 +150,10 @@ static GameState Ets2TelemetryParse(String &json, EtsState &state) {
     state.isEV = IsEV(truck["model"]);
     state.on = truck["electricOn"];
 
-    state.airEmergency = truck["airPressureEmergencyOn"];
+    state.airEmerg = truck["airPressureEmergencyOn"];
     state.airWarn = truck["airPressureWarningOn"];
     state.beacon = truck["lightsBeaconOn"];
+    state.brake = truck["lightsBrakeOn"];
     state.headlight = truck["lightsBeamLowOn"];
     state.highBeam = truck["lightsBeamHighOn"];
     state.leftBlinker = truck["blinkerLeftActive"];
