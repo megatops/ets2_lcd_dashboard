@@ -2,33 +2,33 @@
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/megatops/ets2_lcd_dashboard) ![GitHub License](https://img.shields.io/github/license/megatops/ets2_lcd_dashboard?logo=license) ![GitHub top language](https://img.shields.io/github/languages/top/megatops/ets2_lcd_dashboard) ![GitHub contributors](https://img.shields.io/github/contributors-anon/megatops/ets2_lcd_dashboard) ![GitHub forks](https://img.shields.io/github/forks/megatops/ets2_lcd_dashboard) ![GitHub Repo stars](https://img.shields.io/github/stars/megatops/ets2_lcd_dashboard)
 
-ETS2 / Forza LCD dashboard can be used with [ETS2 Telemetry Web Server](https://github.com/Funbit/ets2-telemetry-server) and Forza Motorsport / Horizon, made with ESP8266 / ESP32-C3. It can connect to the game via Wi-Fi, work as a wireless digital dashboard for your ETS2/ATS trucks and Forza racing cars. Theoretically, the code should be able to port to any MCU boards with integrated Wi-Fi support (such as Raspberry Pi Pico W, other ESP32 series boards).
+ETS2 / Forza LCD dashboard can be used with [ETS2 Telemetry Web Server](https://github.com/Funbit/ets2-telemetry-server) and Forza Motorsport / Horizon, made with ESP8266 / ESP32-C3. It can connect to the game via Wi-Fi, work as a wireless digital dashboard for your ETS2 / ATS trucks and Forza racing cars. Theoretically, the code should be able to port to any MCU boards with integrated Wi-Fi support (such as Raspberry Pi Pico W, other ESP32 series boards).
 
 ![photo](media/dashboard.jpg)
 
 The dashboard can display:
 
-- ETS2/ATS:
+- Euro Truck Simulator 2 / American Truck Simulator:
   - Estimated distance and time,
   - Current speed, cruise control speed and speed limit (kph/mph),
   - Fuel and estimated fuel distance,
   - Time and date (sync with NTP),
   - (Optional) LED indicators: left blinker, air pressure, brake, low beam, high beam, beacon, park brake, right blinker.
-- Forza:
+- Forza series:
   - RPM bar (linear and converging style),
   - Best lap time, last lap time, current lap time,
-  - Current speed, gear,
+  - Current speed (kph/mph), gear, fuel level,
   - Current lap number, race position.
   - Professional dashboard style for S+ class,
   - (Optional) LED shift indicators.
 
 Check the videos to see how it looks in action:
 
-- ETS2/ATS series:
+- ETS2 / ATS:
 
   [![video](https://img.youtube.com/vi/SX45oxnS2IU/0.jpg)](https://www.youtube.com/watch?v=SX45oxnS2IU)
 
-- Forza series:
+- Forza Horizon:
 
   [![video](https://img.youtube.com/vi/D59rC5C5DTI/0.jpg)](https://www.youtube.com/watch?v=D59rC5C5DTI)
 
@@ -42,7 +42,8 @@ The prices listed below are the retail prices I purchased in China in October 20
 | LCD 2004 (20x4) with I2C daughter board  | CNY 12.7 (with free shipping) |
 | 40pcs female to female jumper wires      | CNY 2 (with free shipping)    |
 | LCD 2004 acrylic display case (optional) | CNY 2.8 + CNY 2 shipping fee  |
-|                                          | Total: CNY 29.4 (USD 4.2)     |
+| 8x WS2812 LED stick (optional)           | CNY 2 (with free shipping)    |
+|                                          | Total: CNY 31.4 (USD 4.5)     |
 
 ![connections](media/ets2_lcd_dashboard.png)
 
@@ -176,7 +177,7 @@ Here are some tested open source UDP forwarders:
 
 ## Release History
 
-**2026-2-17**
+**2026-2-23**
 
 - Support ETS2/ATS LED indicators.
 
