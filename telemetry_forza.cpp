@@ -46,7 +46,7 @@ static GameState ForzaTelemetryParse(const ForzaPkt &pkt, size_t len, ForzaState
   state.bestLap = round(dash->BestLap * 1000);
   state.lastLap = round(dash->LastLap * 1000);
   state.currLap = round(dash->CurrentLap * 1000);
-  state.isPro = sled->CarClass > 3;  // S class
+  state.isPro = sled->CarClass >= FORZA_PRO_CLASS;
   return GAME_DRIVING;
 }
 

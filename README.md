@@ -4,15 +4,21 @@
 
 ETS2 / Forza LCD dashboard can be used with [ETS2 Telemetry Web Server](https://github.com/Funbit/ets2-telemetry-server) and Forza Motorsport / Horizon, made with ESP8266 / ESP32-C3. It can connect to the game via Wi-Fi, work as a wireless digital dashboard for your ETS2 / ATS trucks and Forza racing cars. Theoretically, the code should be able to port to any MCU boards with integrated Wi-Fi support (such as Raspberry Pi Pico W, other ESP32 series boards).
 
-![photo](media/dashboard.jpg)
+![photo](media/forza.jpg)
 
-The dashboard can display:
+## Display Modes
 
+The dashboard has 4 display modes based on the game status:
+
+![modes](media/dashboard.jpg)
+
+- Idle (not driving):
+  - Time and date (sync with NTP).
 - Euro Truck Simulator 2 / American Truck Simulator:
+  - Current time (in the real world),
   - Estimated distance and time,
   - Current speed, cruise control speed and speed limit (kph/mph),
   - Fuel and estimated fuel distance,
-  - Time and date (sync with NTP),
   - (Optional) LED indicators: left blinker, air pressure, brake, low beam, high beam, beacon, park brake, right blinker.
 - Forza series:
   - RPM bar (linear and converging style),
@@ -104,9 +110,25 @@ More dashboard features could be customized with below settings (`config.h`):
 
 ```cpp
 // Dashboard configurations
-constexpr bool CLOCK_BLINK = true;  // blink the ":" mark in dashboard clock
-constexpr bool CLOCK_12H = true;    // display dashboard clock in 12 hour
 constexpr bool SHOW_MILE = false;   // display with mile instead of km
+constexpr bool CLOCK_BLINK = true;  // blink the ":" mark in ETS2 dashboard clock
+constexpr bool CLOCK_12H = true;    // display ETS2 dashboard clock in 12 hour
+
+// Forza: the car class to use performance dashboard style.
+// 0:D 1:C 2:B 3:A 4:S1 5:S2 6:X ...
+// Set to 0 to always use performance dashboard,
+// Set to 10 to disable performance dashboard.
+constexpr int FORZA_PRO_CLASS = 4;
+
+// Forza: shift zone
+constexpr float FORZA_SHIFT_ZONE = 85.0;
+constexpr float FORZA_RED_ZONE = 90.0;
+
+// Forza: shift indicator engine load map
+constexpr float RGB_LOAD_MAP[RGB_LED_NUM]{ ... };
+
+// Forza: shift indicator color map
+constexpr RgbColor RGB_COLOR_MAP[RGB_LED_NUM]{ ... };
 ```
 
 ## Build and Upload
@@ -161,7 +183,7 @@ constexpr int BACKLIGHT_CLOCK = 128;     // normal time
 constexpr int BACKLIGHT_CLOCK_DIM = 24;  // night light
 
 // Hours to dim the clock (1:00am ~ 5:59am by default)
-static constexpr bool CLOCK_DIM_HOURS[24]{ ... };
+constexpr bool CLOCK_DIM_HOURS[24]{ ... };
 ```
 
 ## Forza Data Out Setup

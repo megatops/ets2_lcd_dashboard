@@ -185,7 +185,7 @@ static void UpdateLED(bool force, float load) {
   });
 }
 
-static void RgbRedZone(void) {
+static void LedRedZone(void) {
   if (blinkShow) {
     auto &color = RGB_COLOR_MAP[RGB_LED_NUM - 1];  // same with the last LED
     for (int i = 0; i < RGB_LED_NUM; i++) {
@@ -212,7 +212,7 @@ static void UpdateRpm(bool force, int rpm, int rpmIdle, int rpmMax) {
     LAZY_UPDATE(force, bar, {
       lcd.setCursor(0, 0);
       lcd.print(bar);
-      RgbRedZone();
+      LedRedZone();
     });
     return;
   }

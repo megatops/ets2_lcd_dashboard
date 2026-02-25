@@ -23,9 +23,9 @@ constexpr int TIME_ZONE = 8 * 60;                     // local time zone in minu
 constexpr bool DST = false;                           // daylight saving time
 
 // Dashboard configurations
-constexpr bool CLOCK_BLINK = true;  // blink the ":" mark in dashboard clock
-constexpr bool CLOCK_12H = true;    // display dashboard clock in 12 hour
 constexpr bool SHOW_MILE = false;   // display with mile instead of km
+constexpr bool CLOCK_BLINK = true;  // blink the ":" mark in ETS2 dashboard clock
+constexpr bool CLOCK_12H = true;    // display ETS2 dashboard clock in 12 hour
 
 // Backlight levels
 constexpr int BACKLIGHT_MAX = 255;
@@ -95,7 +95,7 @@ enum LedSlot {
   RBLINKER,
   SLOT_MAX,
 };
-static_assert(LedSlot::SLOT_MAX == RGB_LED_NUM, "Unexpected LED slots");
+static_assert(LedSlot::SLOT_MAX <= RGB_LED_NUM, "Too many LED slots");
 
 struct RgbColor {
   uint8_t r;
@@ -111,15 +111,25 @@ constexpr RgbColor
   LED_INFO{ 0, 128, 0 },    // green, half the brightness
   LED_OFF{ 0, 0, 0 };
 
-// Forza: engine load to RGB LED map
-constexpr float RGB_LOAD_MAP[RGB_LED_NUM] = {
-  40.0, 50.0, 60.0,  // green
-  70.0, 75.0, 80.0,  // yellow
-  85.0, 85.0,        // red
+// Forza: the car class to use performance dashboard style.
+// 0:D 1:C 2:B 3:A 4:S1 5:S2 6:X ...
+// Set to 0 to always use performance dashboard,
+// Set to 10 to disable performance dashboard.
+constexpr int FORZA_PRO_CLASS = 4;
+
+// Forza: shift zone
+constexpr float FORZA_SHIFT_ZONE = 85.0;
+constexpr float FORZA_RED_ZONE = 90.0;
+
+// Forza: shift indicator engine load map
+constexpr float RGB_LOAD_MAP[RGB_LED_NUM]{
+  40.0, 50.0, 60.0,                    // green
+  70.0, 75.0, 80.0,                    // yellow
+  FORZA_SHIFT_ZONE, FORZA_SHIFT_ZONE,  // red (shift zone)
 };
 
-// Forza: shift indicator colors
-constexpr RgbColor RGB_COLOR_MAP[RGB_LED_NUM] = {
+// Forza: shift indicator color map
+constexpr RgbColor RGB_COLOR_MAP[RGB_LED_NUM]{
   { 0, 255, 0 },  // green
   { 0, 255, 0 },
   { 0, 255, 0 },
@@ -129,9 +139,5 @@ constexpr RgbColor RGB_COLOR_MAP[RGB_LED_NUM] = {
   { 255, 0, 0 },  // red
   { 255, 0, 0 },
 };
-
-// Forza: shift zone
-constexpr float FORZA_SHIFT_ZONE = 85.0;
-constexpr float FORZA_RED_ZONE = 90.0;
 
 #endif
