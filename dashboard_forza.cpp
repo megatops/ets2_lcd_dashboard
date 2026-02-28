@@ -253,47 +253,41 @@ static void UpdateRpm(bool force, int rpm, int rpmIdle, int rpmMax) {
   }
 }
 
-static void DashboardInit(void) {
+static void DashboardInit(bool force) {
+  if (!force) {
+    return;
+  }
   RgbOFF();
-
   lcd.setCursor(0, 0);
   lcd.print("                    ");
-
-  if (isPro) {
-    lcd.setCursor(0, 1);
-    lcd.print("C             POS:  ");
-    lcd.setCursor(0, 2);
-    lcd.print("L             LAP:  ");
-    lcd.setCursor(0, 3);
-    lcd.print("B             E    F");
-  } else {
-    lcd.setCursor(0, 1);
-    lcd.print("[        ]          ");
-    lcd.setCursor(0, 2);
-    lcd.print("          POS:      ");
-    lcd.setCursor(0, 3);
-    lcd.print("          LAP:      ");
-  }
+  lcd.setCursor(0, 1);
+  lcd.print(isPro ? "C             POS:  " : "[        ]          ");
+  lcd.setCursor(0, 2);
+  lcd.print(isPro ? "L             LAP:  " : "          POS:      ");
+  lcd.setCursor(0, 3);
+  lcd.print(isPro ? "B             E    F" : "          LAP:      ");
 }
 
-void ForzaDashboardUpdate(ForzaState &state) {
-  bool force = (dashMode != DASH_FORZA) || (isPro != state.isPro);  // mode change needs a full update
+void ForzaDashboardUpdate(const ForzaState *st) {
+  static ForzaState state;
+  if (st != nullptr) {
+    state = *st;
+  }
+
+  // mode/style change needs a full update
+  bool force = (dashMode != DASH_FORZA) || (isPro != state.isPro);
   dashMode = DASH_FORZA;
   isPro = state.isPro;
+
+  constexpr int PERIOD = 3;
   static int blinkCounter;
+  blinkShow = (blinkCounter++ < PERIOD);
+  blinkCounter %= (PERIOD * 2);
 
   BacklightUpdate(force, BACKLIGHT_DAY);
   static_cast<void>(RgbLevelUpdate(force, RGB_LEVEL_DAY));
 
-  if (force) {
-    DashboardInit();
-    blinkCounter = 0;
-  }
-
-  constexpr int PERIOD = 3;
-  blinkShow = (blinkCounter++ < PERIOD);
-  blinkCounter %= (PERIOD * 2);
-
+  DashboardInit(force);
   UpdateRpm(force, state.rpm, state.rpmIdle, state.rpmMax);
   UpdateSpeed(force, state.speed);
   UpdateGear(force, state.gear);

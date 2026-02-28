@@ -194,7 +194,10 @@ static void UpdateLEDs(bool force, bool leftBlinker, bool rightBlinker,
   }
 }
 
-static void DashboardInit(void) {
+static void DashboardInit(bool force) {
+  if (!force) {
+    return;
+  }
   RgbOFF();
   lcd.setCursor(0, 0);
   lcd.printf("%s \x7e     %s   :  ", CLOCK_ENABLE ? "     " : "Navi:", SHOW_MILE ? "mi" : "km");
@@ -206,7 +209,12 @@ static void DashboardInit(void) {
   lcd.print("                    ");
 }
 
-void Ets2DashboardUpdate(EtsState &state, time_t time) {
+void Ets2DashboardUpdate(const EtsState *st, time_t time) {
+  static EtsState state;
+  if (st != nullptr) {
+    state = *st;
+  }
+
   bool force = (dashMode != DASH_ETS2);  // mode change needs a full update
   dashMode = DASH_ETS2;
   blinkShow = !blinkShow;
@@ -215,10 +223,7 @@ void Ets2DashboardUpdate(EtsState &state, time_t time) {
   BacklightUpdate(force, state.on ? (state.headlight ? BACKLIGHT_NIGHT : BACKLIGHT_DAY) : BACKLIGHT_OFF);
   bool freshRgb = RgbLevelUpdate(force, state.on ? (state.headlight ? RGB_LEVEL_NIGHT : RGB_LEVEL_DAY) : RGB_LEVEL_OFF);
 
-  if (force) {
-    DashboardInit();
-  }
-
+  DashboardInit(force);
   if (CLOCK_ENABLE) {
     UpdateClock(force, CLOCK_12H ? hourFormat12(time) : hour(time), minute(time));
   }

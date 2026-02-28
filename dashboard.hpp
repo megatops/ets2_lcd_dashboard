@@ -47,7 +47,7 @@ void RgbSet(int i, const RgbColor &color);
 bool RgbLevelUpdate(bool force, uint8_t level);
 
 void ClockUpdate(time_t time);
-void Ets2DashboardUpdate(EtsState &state, time_t time);
-void ForzaDashboardUpdate(ForzaState &state);
+void Ets2DashboardUpdate(const EtsState *st, time_t time);
+void ForzaDashboardUpdate(const ForzaState *st);
 
 #endif

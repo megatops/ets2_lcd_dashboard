@@ -52,7 +52,10 @@ static void UpdateTime(bool force, int hour, int minute, int second, bool pm) {
   });
 }
 
-static void ClockInit(void) {
+static void ClockInit(bool force) {
+  if (!force) {
+    return;
+  }
   RgbOFF();
   lcd.setCursor(0, 0);
   lcd.print("        \xA5           ");
@@ -64,16 +67,36 @@ static void ClockInit(void) {
   lcd.print("     ,       ,      ");
 }
 
+static void ShowNoClock(bool force) {
+  if (!force) {
+    return;
+  }
+  RgbOFF();
+  lcd.setCursor(0, 0);
+  lcd.print("                    ");
+  lcd.setCursor(0, 1);
+  lcd.print("ETS2 Forza Dashboard");
+  lcd.setCursor(0, 2);
+  lcd.print("Waiting for game ...");
+  lcd.setCursor(0, 3);
+  lcd.print("                    ");
+}
+
 void ClockUpdate(time_t time) {
   bool force = (dashMode != DASH_CLOCK);  // mode change needs a full update
   dashMode = DASH_CLOCK;
 
+  if (!CLOCK_ENABLE) {
+    // time is not available
+    ShowNoClock(force);
+    BacklightUpdate(force, BACKLIGHT_CLOCK);
+    return;
+  }
+
   // dim the clock backlight as night light
   BacklightUpdate(force, CLOCK_DIM_HOURS[hour(time)] ? BACKLIGHT_CLOCK_DIM : BACKLIGHT_CLOCK);
 
-  if (force) {
-    ClockInit();
-  }
+  ClockInit(force);
   UpdateTime(force, hourFormat12(time), minute(time), second(time), isPM(time));
   UpdateDate(force, year(time), month(time), day(time), weekday(time));
 }

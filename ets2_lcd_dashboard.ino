@@ -143,20 +143,40 @@ static void DashboardTimerFunc(void) {
                          game, FORZA_MAX_FAILURE, FORZA_ACTIVE_DELAY);
   }
 
-  if ((ets2Active || forzaActive) && game < GAME_READY) {
-    // sometimes the API server may return failure, don't
-    // update the dashboard in this case, just wait for the
-    // temporary failure recovered, or completely inactive.
-  } else if (!CLOCK_ENABLE || game == GAME_DRIVING) {
-    // only update dashboard when driving
+  static bool driving;
+  if (ets2Active || forzaActive) {
+    switch (game) {
+      case GAME_DRIVING:
+        driving = true;
+        break;
+      case GAME_READY:  // game paused, quit driving mode
+        driving = false;
+        break;
+      default:
+        // for temporary failure, preserve the last mode
+        // until it recovered, or completely inactive.
+        break;
+    }
+  } else {
+    driving = false;  // inactive
+  }
+
+  if (driving) {
+    // show cached state on temporary failure.
+    bool fresh = (game == GAME_DRIVING);
     if (ets2Active) {
-      Ets2DashboardUpdate(etsState, ntp.getEpochTime());
+      Ets2DashboardUpdate(fresh ? &etsState : nullptr, ntp.getEpochTime());
     } else if (forzaActive) {
-      ForzaDashboardUpdate(forzaState);
+      ForzaDashboardUpdate(fresh ? &forzaState : nullptr);
+    } else {
+      Serial.println("Unexpected dashboard state!");
+      driving = false;
     }
   } else if (dashMode != DASH_CLOCK) {
+    // need to switch to clock mode (not driving, or inactive)
     ClockUpdate(ntp.getEpochTime());
-  }  // otherwise let clock_tick() to update
+  }
+  // otherwise let clock_tick() to update the clock display
 }
 
 void setup() {
@@ -169,9 +189,6 @@ void setup() {
 
   if (CLOCK_ENABLE) {
     ClockInitialSync();
-  } else {
-    EtsState s{};
-    Ets2DashboardUpdate(s, 0);
   }
 }
 

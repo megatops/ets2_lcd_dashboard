@@ -18,8 +18,8 @@
 
 #include "telemetry.hpp"
 
-static constexpr int HTTP_CONN_TIMEOUT = 200;  // timeout for connect
-static constexpr int HTTP_READ_TIMEOUT = 450;  // timeout for TCP read
+static constexpr int HTTP_CONN_TIMEOUT = 100;  // timeout for connect
+static constexpr int HTTP_READ_TIMEOUT = 200;  // timeout for TCP read
 
 // Calculated with: https://arduinojson.org/v6/assistant/
 static constexpr int JSON_FILTER_SIZE = 512;
