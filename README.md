@@ -32,7 +32,7 @@ Check the videos to see how it looks in action:
 
 - ETS2 / ATS:
 
-  [![video](https://img.youtube.com/vi/SX45oxnS2IU/0.jpg)](https://www.youtube.com/watch?v=SX45oxnS2IU)
+  [![video](https://img.youtube.com/vi/kvYfzfg_HqE/0.jpg)](https://www.youtube.com/watch?v=kvYfzfg_HqE)
 
 - Forza Horizon:
 
