@@ -250,3 +250,7 @@ Forums
 Tutorial
 
 - [给美卡模拟/欧卡模拟2手工撸个硬件行车电脑 (Chinese)](https://post.smzdm.com/p/al8ee28e/)
+
+## Disclaimer 
+
+All product names, logos, and brands such as _Euro Truck Simulator_, _Forza_ are property of their respective owners. Their use in this project is for identification and reference only and does not imply any endorsement or partnership.
