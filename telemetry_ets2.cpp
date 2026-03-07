@@ -76,7 +76,7 @@ static bool IsEV(const char *model) {
 //     "speedLimit": true
 //   }
 // }
-static DeserializationOption::Filter &ets2TelemetryFilter(void) {
+static DeserializationOption::Filter &ets2TelemetryFilter() {
   static StaticJsonDocument<JSON_FILTER_SIZE> f;
   static auto filter = DeserializationOption::Filter(f);
 

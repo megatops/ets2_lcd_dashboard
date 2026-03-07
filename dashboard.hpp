@@ -42,8 +42,9 @@ extern Adafruit_NeoPixel rgbBar;
 
 void LcdInit(int sda, int scl, uint32_t freq);
 void BacklightUpdate(bool force, int level);
-void RgbOFF(void);
+void RgbOFF();
 void RgbSet(int i, const RgbColor &color);
+void RgbFill(const RgbColor &color);
 bool RgbLevelUpdate(bool force, uint8_t level);
 
 void ClockUpdate(time_t time);

@@ -56,7 +56,7 @@ static void WifiConnect(void (*tick)() = nullptr) {
   forzaUDP.begin(FORZA_PORT);
 }
 
-static void ClockInitialSync(void) {
+static void ClockInitialSync() {
   Serial.printf("NTP syncing with %s .", NTP_SERVER);
 
   ntp.begin();
@@ -69,7 +69,7 @@ static void ClockInitialSync(void) {
   ClockUpdate(ntp.getEpochTime());
 }
 
-static void ClockTick(void) {
+static void ClockTick() {
   if (!CLOCK_ENABLE || dashMode != DASH_CLOCK) {
     return;
   }
@@ -110,7 +110,7 @@ static void DashboardTimerAdjust(const char *name, bool &active, int &failed,
   }
 }
 
-static void DashboardTimerFunc(void) {
+static void DashboardTimerFunc() {
   static int failed;
   bool forzaActive = false, ets2Active = false;
 
