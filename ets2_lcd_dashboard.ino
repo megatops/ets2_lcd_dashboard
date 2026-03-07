@@ -1,6 +1,6 @@
 // ETS2 LCD Dashboard for ESP8266/ESP32C3
 //
-// Copyright (C) 2023-2024 Ding Zhaojie <zhaojie_ding@msn.com>
+// Copyright (C) 2023-2026 Ding Zhaojie <zhaojie_ding@msn.com>
 //
 // This work is licensed under the terms of the GNU GPL, version 2 or later.
 // See the COPYING file in the top-level directory.
@@ -56,7 +56,7 @@ static void WifiConnect(void (*tick)() = nullptr) {
   forzaUDP.begin(FORZA_PORT);
 }
 
-static void ClockInitialSync(void) {
+static void ClockInitialSync() {
   Serial.printf("NTP syncing with %s .", NTP_SERVER);
 
   ntp.begin();
@@ -69,7 +69,7 @@ static void ClockInitialSync(void) {
   ClockUpdate(ntp.getEpochTime());
 }
 
-static void ClockTick(void) {
+static void ClockTick() {
   if (!CLOCK_ENABLE || dashMode != DASH_CLOCK) {
     return;
   }
@@ -89,67 +89,49 @@ static void ClockTick(void) {
 }
 
 static SoftwareTimer dashboardTimer(INIT_DELAY, &DashboardTimerFunc);
+static TimerState timerState = TimerState::INIT;
 
-static void DashboardTimerAdjust(const char *name, bool &active, int &failed,
-                                 GameState game, int maxFailure, int activeDelay) {
-  if (game >= GAME_READY) {
-    // the game is running, speed up polling for faster responses
-    if (!active) {
-      Serial.printf("%s become active.\n", name);
-      dashboardTimer.setInterval(activeDelay);
-      active = true;
-    }
-    failed = 0;
+static void DashboardTimerSetState(TimerState state) {
+  static constexpr unsigned long INTERVAL[TimerState::STATE_MAX]{
+    [TimerState::INIT] = INIT_DELAY,
+    [TimerState::IDLE] = IDLE_DELAY,
+    [TimerState::ETS2_ACIVE] = ETS2_ACTIVE_DELAY,
+    [TimerState::FORZA_ACTIVE] = FORZA_ACTIVE_DELAY,
+  };
 
-  } else if (active && ++failed >= maxFailure) {
-    // slow down the frequency of queries to reduce the API
-    // server (running on your gaming PC) resource usage
-    Serial.printf("%s is inactive.\n", name);
-    dashboardTimer.setInterval(IDLE_DELAY);
-    active = false;
+  if (state != timerState) {
+    timerState = state;
+    dashboardTimer.setInterval(INTERVAL[state]);
   }
 }
 
-static void DashboardTimerFunc(void) {
+static void DashboardTimerStateTrans(const char *name, GameState game, int maxFailure, TimerState activeState) {
   static int failed;
-  bool forzaActive = false, ets2Active = false;
 
-  switch (dashboardTimer.getInterval()) {
-    case FORZA_ACTIVE_DELAY:
-      forzaActive = true;
-      break;
-    case ETS2_ACTIVE_DELAY:
-      ets2Active = true;
-      break;
-    default:
-      break;
+  if (game >= GameState::READY) {
+    // the game is running, speed up polling for faster responses
+    if (timerState != activeState) {
+      Serial.printf("%s become active.\n", name);
+      DashboardTimerSetState(activeState);
+    }
+    failed = 0;
+
+  } else if ((timerState == activeState) && (++failed >= maxFailure)) {
+    // slow down the frequency of queries to reduce the API
+    // server (running on your gaming PC) resource usage
+    Serial.printf("%s is inactive.\n", name);
+    DashboardTimerSetState(TimerState::IDLE);
   }
+}
 
-  GameState game = GAME_SERVER_DOWN;
-  EtsState etsState{};
-  ForzaState forzaState{};
-
-  if (!forzaActive) {
-    // ETS2 query
-    game = Ets2TelemetryQuery(etsHTTP, etsState);
-    DashboardTimerAdjust("ETS2 Telemetry Server", ets2Active, failed,
-                         game, ETS2_MAX_FAILURE, ETS2_ACTIVE_DELAY);
-  }
-
-  if (!ets2Active) {
-    // Forza query
-    game = ForzaTelemetryQuery(forzaUDP, forzaState);
-    DashboardTimerAdjust("Forza", forzaActive, failed,
-                         game, FORZA_MAX_FAILURE, FORZA_ACTIVE_DELAY);
-  }
-
+static bool IsDriving(GameState game) {
   static bool driving;
-  if (ets2Active || forzaActive) {
+  if (timerState > TimerState::IDLE) {
     switch (game) {
-      case GAME_DRIVING:
+      case GameState::DRIVING:
         driving = true;
         break;
-      case GAME_READY:  // game paused, quit driving mode
+      case GameState::READY:  // game paused, quit driving mode
         driving = false;
         break;
       default:
@@ -160,18 +142,41 @@ static void DashboardTimerFunc(void) {
   } else {
     driving = false;  // inactive
   }
+  return driving;
+}
 
-  if (driving) {
+static void DashboardTimerFunc() {
+  GameState game = GameState::SERVER_DOWN;
+  EtsState etsState{};
+  ForzaState forzaState{};
+
+  // ETS2 query
+  if (timerState <= TimerState::IDLE || timerState == TimerState::ETS2_ACIVE) {
+    game = Ets2TelemetryQuery(etsHTTP, etsState);
+    DashboardTimerStateTrans("ETS2", game, ETS2_MAX_FAILURE, TimerState::ETS2_ACIVE);
+  }
+
+  // Forza query
+  if (timerState <= TimerState::IDLE || timerState == TimerState::FORZA_ACTIVE) {
+    game = ForzaTelemetryQuery(forzaUDP, forzaState);
+    DashboardTimerStateTrans("Forza", game, FORZA_MAX_FAILURE, TimerState::FORZA_ACTIVE);
+  }
+
+  if (IsDriving(game)) {
     // show cached state on temporary failure.
-    bool fresh = (game == GAME_DRIVING);
-    if (ets2Active) {
-      Ets2DashboardUpdate(fresh ? &etsState : nullptr, ntp.getEpochTime());
-    } else if (forzaActive) {
-      ForzaDashboardUpdate(fresh ? &forzaState : nullptr);
-    } else {
-      Serial.println("Unexpected dashboard state!");
-      driving = false;
+    bool fresh = (game == GameState::DRIVING);
+    switch (timerState) {
+      case TimerState::ETS2_ACIVE:
+        Ets2DashboardUpdate(fresh ? &etsState : nullptr, ntp.getEpochTime());
+        break;
+      case TimerState::FORZA_ACTIVE:
+        ForzaDashboardUpdate(fresh ? &forzaState : nullptr);
+        break;
+      default:
+        Serial.println("Unexpected dashboard state!");
+        break;
     }
+
   } else if (dashMode != DASH_CLOCK) {
     // need to switch to clock mode (not driving, or inactive)
     ClockUpdate(ntp.getEpochTime());

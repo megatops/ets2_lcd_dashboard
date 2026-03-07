@@ -185,12 +185,9 @@ static void UpdateLED(bool force, float load) {
   });
 }
 
-static void LedRedZone(void) {
+static void LedRedZone() {
   if (blinkShow) {
-    auto &color = RGB_COLOR_MAP[RGB_LED_NUM - 1];  // same with the last LED
-    for (int i = 0; i < RGB_LED_NUM; i++) {
-      RgbSet(i, color);
-    }
+    RgbFill(RGB_COLOR_MAP[RGB_LED_NUM - 1]);  // same with the last LED
     rgbBar.show();
   } else {
     RgbOFF();

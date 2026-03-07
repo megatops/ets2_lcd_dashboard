@@ -76,7 +76,7 @@ static bool IsEV(const char *model) {
 //     "speedLimit": true
 //   }
 // }
-static DeserializationOption::Filter &ets2TelemetryFilter(void) {
+static DeserializationOption::Filter &ets2TelemetryFilter() {
   static StaticJsonDocument<JSON_FILTER_SIZE> f;
   static auto filter = DeserializationOption::Filter(f);
 
@@ -121,21 +121,21 @@ static GameState Ets2TelemetryParse(String &json, EtsState &state) {
   auto err = deserializeJson(ets, json, ets2TelemetryFilter());
   if (err) {
     Serial.printf("Parsing ETS2 JSON failed: %s\n", err.c_str());
-    return GAME_NOT_START;
+    return GameState::NOT_START;
   }
 
   JsonObject game = ets["game"];
   if (game.isNull()) {
     Serial.println("ETS2 JSON: no \"game\" object.");
-    return GAME_NOT_START;
+    return GameState::NOT_START;
   }
   if (!game["connected"]) {
     Serial.println("ETS2 is not ready.");
-    return GAME_NOT_START;
+    return GameState::NOT_START;
   }
   if (CLOCK_ENABLE && game["paused"]) {
     Serial.println("ETS2 is paused.");
-    return GAME_READY;
+    return GameState::READY;
   }
 
   JsonObject truck = ets["truck"];
@@ -176,11 +176,11 @@ static GameState Ets2TelemetryParse(String &json, EtsState &state) {
     state.limit = round(KmConv(nav["speedLimit"]));
   }
 
-  return GAME_DRIVING;
+  return GameState::DRIVING;
 }
 
 GameState Ets2TelemetryQuery(HTTPClient &http, EtsState &state) {
-  GameState game = GAME_SERVER_DOWN;
+  GameState game = GameState::SERVER_DOWN;
 
   static WiFiClient client;
   http.begin(client, ETS_API);

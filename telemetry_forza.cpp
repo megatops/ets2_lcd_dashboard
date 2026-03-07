@@ -28,11 +28,11 @@ static GameState ForzaTelemetryParse(const ForzaPkt &pkt, size_t len, ForzaState
       break;
 
     default:
-      return GAME_SERVER_DOWN;
+      return GameState::SERVER_DOWN;
   }
 
   if (CLOCK_ENABLE && (sled->IsRaceOn == 0)) {
-    return GAME_READY;
+    return GameState::READY;
   }
 
   state.speed = abs(round(KmConv((double)dash->Speed * 60 * 60 / 1000)));
@@ -47,25 +47,25 @@ static GameState ForzaTelemetryParse(const ForzaPkt &pkt, size_t len, ForzaState
   state.lastLap = round(dash->LastLap * 1000);
   state.currLap = round(dash->CurrentLap * 1000);
   state.isPro = sled->CarClass >= FORZA_PRO_CLASS;
-  return GAME_DRIVING;
+  return GameState::DRIVING;
 }
 
 GameState ForzaTelemetryQuery(WiFiUDP &udp, ForzaState &state) {
   int len = udp.parsePacket();
   if (len <= 0) {
-    return GAME_SERVER_DOWN;  // no packet
+    return GameState::SERVER_DOWN;  // no packet
   }
 
   if (!IsForzaPacket(len)) {
     Serial.printf("Invalid Forza packet of size %d from %s\n", len, udp.remoteIP().toString().c_str());
-    return GAME_SERVER_DOWN;
+    return GameState::SERVER_DOWN;
   }
 
   static ForzaPkt pkt;
   int n = udp.read(pkt.bytes, sizeof(pkt));
   if (n != len) {
     Serial.printf("Failed to read Forza packet: %d of %d\n", n, len);
-    return GAME_SERVER_DOWN;
+    return GameState::SERVER_DOWN;
   }
 
   return ForzaTelemetryParse(pkt, n, state);

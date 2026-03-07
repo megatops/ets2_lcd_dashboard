@@ -35,13 +35,20 @@ bool RgbLevelUpdate(bool force, uint8_t level) {
   return changed;
 }
 
-void RgbOFF(void) {
+void RgbOFF() {
   rgbBar.clear();
   rgbBar.show();
 }
 
 void RgbSet(int i, const RgbColor &color) {
+  if (i < 0 || i >= RGB_LED_NUM) {
+    return;
+  }
   rgbBar.setPixelColor(RGB_LED_NUM - i - 1, rgbBar.Color(color.r, color.g, color.b));
+}
+
+void RgbFill(const RgbColor &color) {
+  rgbBar.fill(rgbBar.Color(color.r, color.g, color.b));
 }
 
 void LcdInit(int sda, int scl, uint32_t freq) {

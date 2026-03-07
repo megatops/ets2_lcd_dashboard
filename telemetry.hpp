@@ -71,11 +71,20 @@ struct ForzaState {
 };
 
 enum GameState {
-  GAME_SERVER_DOWN,
-  GAME_NOT_START,
+  SERVER_DOWN,
+  NOT_START,
 
-  GAME_READY,
-  GAME_DRIVING,  // driving the truck
+  READY,
+  DRIVING,  // driving the truck
+};
+
+enum TimerState {
+  INIT,
+  IDLE,
+
+  ETS2_ACIVE,
+  FORZA_ACTIVE,
+  STATE_MAX,
 };
 
 constexpr bool DEBUG_ENABLE = false;  // verbose serial debug info
