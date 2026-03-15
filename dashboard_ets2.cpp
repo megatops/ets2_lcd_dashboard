@@ -20,7 +20,7 @@ static bool blinkShow;  // synchronize the blinks (1Hz @ 2FPS)
 static void UpdateSpeed(bool force, int speed) {
   LIMIT(speed, 199);
   LAZY_UPDATE(force, speed, {
-    digit.print(5, 1, speed, 3, false);
+    display.printLarge(5, 1, speed, 3, false);
     DEBUG("Update speed: %d\n", speed);
   });
 }
@@ -28,11 +28,11 @@ static void UpdateSpeed(bool force, int speed) {
 static void UpdateEtaDist(bool force, int etaDist) {
   LIMIT(etaDist, 9999);
   LAZY_UPDATE(force, etaDist, {
-    lcd.setCursor(8, 0);
+    display.setCursor(8, 0);
     if (etaDist >= 1000) {
-      lcd.printf("%4d", etaDist);  // 8888km
+      display.printf("%4d", etaDist);  // 8888km
     } else {
-      lcd.printf("%3d ", etaDist);  // 888 km
+      display.printf("%3d ", etaDist);  // 888 km
     }
     DEBUG("Update ETA distance: %d\n", etaDist);
   });
@@ -41,8 +41,8 @@ static void UpdateEtaDist(bool force, int etaDist) {
 static void UpdateEtaTime(bool force, int etaTime) {
   LIMIT(etaTime, 99 * 60 + 59);
   LAZY_UPDATE(force, etaTime, {
-    lcd.setCursor(15, 0);
-    lcd.printf("%02d:%02d", etaTime / 60, etaTime % 60);
+    display.setCursor(15, 0);
+    display.printf("%02d:%02d", etaTime / 60, etaTime % 60);
     DEBUG("Update ETA time: %d\n", etaTime);
   });
 }
@@ -50,11 +50,11 @@ static void UpdateEtaTime(bool force, int etaTime) {
 static void UpdateCruise(bool force, int cruise) {
   LIMIT(cruise, 999);
   LAZY_UPDATE(force, cruise, {
-    lcd.setCursor(1, 2);
+    display.setCursor(1, 2);
     if (cruise > 0) {
-      lcd.printf("%3d", cruise);
+      display.printf("%3d", cruise);
     } else {
-      lcd.print("---");
+      display.print("---");
     }
     DEBUG("Update cruise: %d\n", cruise);
   });
@@ -63,11 +63,11 @@ static void UpdateCruise(bool force, int cruise) {
 static void UpdateLimit(bool force, int limit, bool speeding) {
   LIMIT(limit, 999);
   LAZY_UPDATE(force, limit, {
-    lcd.setCursor(16, 2);
+    display.setCursor(16, 2);
     if (limit > 0) {
-      lcd.printf("%3d", limit);
+      display.printf("%3d", limit);
     } else {
-      lcd.print("---");
+      display.print("---");
     }
     DEBUG("Update speed limit: %d\n", limit);
   });
@@ -75,8 +75,8 @@ static void UpdateLimit(bool force, int limit, bool speeding) {
   // blink the label as speeding warning
   auto label = BLINK_IF(speeding, "Limit", "     ");
   LAZY_UPDATE(force, label, {
-    lcd.setCursor(15, 1);
-    lcd.print(label);
+    display.setCursor(15, 1);
+    display.print(label);
   });
 }
 
@@ -91,8 +91,8 @@ static void UpdateFuel(bool force, bool is_ev, int fuel, int fuelDist, bool warn
       }
       fuelDist = cached_;  // keep the old display
     }
-    lcd.setCursor(16, 3);
-    lcd.printf("%4d", fuelDist);
+    display.setCursor(16, 3);
+    display.printf("%4d", fuelDist);
     DEBUG("Update fuel distance: %d\n", fuelDist);
   });
 
@@ -102,34 +102,34 @@ static void UpdateFuel(bool force, bool is_ev, int fuel, int fuelDist, bool warn
     for (int i = 0; i < seg; i++) {
       bar[i] = 0xFF;
     }
-    lcd.setCursor(5, 3);
-    lcd.print(bar);
+    display.setCursor(5, 3);
+    display.print(bar);
     DEBUG("Update fuel: %d%%\n", fuel);
   });
 
   // blink the label as fuel warning
   auto label = BLINK_IF(warn, is_ev ? "Batt" : "Fuel", "    ");
   LAZY_UPDATE(force, label, {
-    lcd.setCursor(0, 3);
-    lcd.print(label);
+    display.setCursor(0, 3);
+    display.print(label);
   });
 }
 
 static void UpdateClock(bool force, int hour, int minute) {
   LAZY_UPDATE(force, hour, {
-    lcd.setCursor(0, 0);
-    lcd.printf("%02d", hour);
+    display.setCursor(0, 0);
+    display.printf("%02d", hour);
   });
 
   LAZY_UPDATE(force, minute, {
-    lcd.setCursor(3, 0);
-    lcd.printf("%02d", minute);
+    display.setCursor(3, 0);
+    display.printf("%02d", minute);
   });
 
   auto label = BLINK_IF(CLOCK_BLINK, ":", " ");
   LAZY_UPDATE(force, label, {
-    lcd.setCursor(2, 0);
-    lcd.print(label);
+    display.setCursor(2, 0);
+    display.print(label);
   });
 }
 
@@ -140,24 +140,24 @@ static void UpdateLEDs(bool force, bool leftBlinker, bool rightBlinker,
 
   // special: blinkers
   if (leftBlinker) {
-    RgbSet(LedSlot::LBLINKER, blinkShow ? LED_INFO : LED_OFF);
+    display.ledSet(LedSlot::LBLINKER, blinkShow ? LED_INFO : LED_OFF);
     changed = true;
   }
   LAZY_UPDATE(force, leftBlinker, {
     if (!leftBlinker) {
-      RgbSet(LedSlot::LBLINKER, LED_OFF);
+      display.ledSet(LedSlot::LBLINKER, LED_OFF);
       changed = true;
     }
     DEBUG("Update leftBlinker: %d\n", leftBlinker);
   });
 
   if (rightBlinker) {
-    RgbSet(LedSlot::RBLINKER, blinkShow ? LED_INFO : LED_OFF);
+    display.ledSet(LedSlot::RBLINKER, blinkShow ? LED_INFO : LED_OFF);
     changed = true;
   }
   LAZY_UPDATE(force, rightBlinker, {
     if (!rightBlinker) {
-      RgbSet(LedSlot::RBLINKER, LED_OFF);
+      display.ledSet(LedSlot::RBLINKER, LED_OFF);
       changed = true;
     }
     DEBUG("Update rightBlinker: %d\n", rightBlinker);
@@ -166,7 +166,7 @@ static void UpdateLEDs(bool force, bool leftBlinker, bool rightBlinker,
   // special: multi-state
   int airWarnLevel = airEmerg ? 2 : (airWarn ? 1 : 0);
   LAZY_UPDATE(force, airWarnLevel, {
-    RgbSet(LedSlot::AIR_WARN, (airWarnLevel == 2) ? LED_ALERT : ((airWarnLevel == 1) ? LED_WARN : LED_OFF));
+    display.ledSet(LedSlot::AIR_WARN, (airWarnLevel == 2) ? LED_ALERT : ((airWarnLevel == 1) ? LED_WARN : LED_OFF));
     changed = true;
     DEBUG("Update airWarnLevel: %d\n", airWarnLevel);
   });
@@ -174,7 +174,7 @@ static void UpdateLEDs(bool force, bool leftBlinker, bool rightBlinker,
 #define UPDATE_INDICATOR(flag, slot, color) \
   do { \
     LAZY_UPDATE(force, (flag), { \
-      RgbSet((slot), (flag) ? (color) : LED_OFF); \
+      display.ledSet((slot), (flag) ? (color) : LED_OFF); \
       changed = true; \
       DEBUG("Update " #flag ": %d\n", (flag)); \
     }); \
@@ -190,7 +190,7 @@ static void UpdateLEDs(bool force, bool leftBlinker, bool rightBlinker,
 #undef UPDATE_INDICATOR
 
   if (changed) {
-    rgbBar.show();
+    display.ledShow();
   }
 }
 
@@ -198,15 +198,15 @@ static void DashboardInit(bool force) {
   if (!force) {
     return;
   }
-  RgbOFF();
-  lcd.setCursor(0, 0);
-  lcd.printf("%s \x7e     %s   :  ", CLOCK_ENABLE ? "     " : "Navi:", SHOW_MILE ? "mi" : "km");
-  lcd.setCursor(0, 1);
-  lcd.print("Cruis               ");
-  lcd.setCursor(0, 2);
-  lcd.print("[   ]          [   ]");
-  lcd.setCursor(0, 3);
-  lcd.print("                    ");
+  display.ledOFF();
+  display.setCursor(0, 0);
+  display.printf("%s \x7e     %s   :  ", CLOCK_ENABLE ? "     " : "Navi:", SHOW_MILE ? "mi" : "km");
+  display.setCursor(0, 1);
+  display.print("Cruis               ");
+  display.setCursor(0, 2);
+  display.print("[   ]          [   ]");
+  display.setCursor(0, 3);
+  display.print("                    ");
 }
 
 void Ets2DashboardUpdate(const EtsState *st, time_t time) {
@@ -220,8 +220,8 @@ void Ets2DashboardUpdate(const EtsState *st, time_t time) {
   blinkShow = !blinkShow;
 
   // no backlight when engine off, dim when headlight on
-  BacklightUpdate(force, state.on ? (state.headlight ? BACKLIGHT_NIGHT : BACKLIGHT_DAY) : BACKLIGHT_OFF);
-  bool freshRgb = RgbLevelUpdate(force, state.on ? (state.headlight ? RGB_LEVEL_NIGHT : RGB_LEVEL_DAY) : RGB_LEVEL_OFF);
+  display.backlightUpdate(force, state.on ? (state.headlight ? BACKLIGHT_NIGHT : BACKLIGHT_DAY) : BACKLIGHT_OFF);
+  bool freshRgb = display.ledBrightnesslUpdate(force, state.on ? (state.headlight ? RGB_LEVEL_NIGHT : RGB_LEVEL_DAY) : RGB_LEVEL_OFF);
 
   DashboardInit(force);
   if (CLOCK_ENABLE) {

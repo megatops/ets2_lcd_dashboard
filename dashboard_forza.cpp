@@ -32,10 +32,10 @@ static void UpdateSpeed(bool force, int speed) {
   LIMIT(speed, 999);
   LAZY_UPDATE(force, speed, {
     if (isPro) {
-      lcd.setCursor(10, 3);
-      lcd.printf("%03d", speed);
+      display.setCursor(10, 3);
+      display.printf("%03d", speed);
     } else {
-      digit.print(0, 2, speed, 3, false);
+      display.printLarge(0, 2, speed, 3, false);
     }
     DEBUG("Update speed: %d\n", speed);
   });
@@ -43,14 +43,14 @@ static void UpdateSpeed(bool force, int speed) {
 
 static void PrintN(int x, int y) {
   // use the strokes defined in LargeDigit
-  lcd.setCursor(x, y);
-  lcd.write(1);
-  lcd.write(7);
-  lcd.write(0);
-  lcd.setCursor(x, y + 1);
-  lcd.write(1);
-  lcd.write(' ');
-  lcd.write(0);
+  display.setCursor(x, y);
+  display.write(1);
+  display.write(7);
+  display.write(0);
+  display.setCursor(x, y + 1);
+  display.write(1);
+  display.write(' ');
+  display.write(0);
 }
 
 static void UpdateGear(bool force, int gear) {
@@ -60,7 +60,7 @@ static void UpdateGear(bool force, int gear) {
   int y = isPro ? 1 : 2;
   LAZY_UPDATE(force, gear, {
     if (gear > 0) {
-      digit.print(x, y, gear, 1, false);
+      display.printLarge(x, y, gear, 1, false);
     } else {
       PrintN(x, y);
     }
@@ -74,11 +74,11 @@ static void UpdateBestTime(bool force, int bestTime) {
 
   int y = isPro ? 3 : 1;
   LAZY_UPDATE(force, bestTime, {
-    lcd.setCursor(1, y);
+    display.setCursor(1, y);
     if (bestTime > 0) {
-      lcd.printf(FMT_STOPWATCH(bestTime));
+      display.printf(FMT_STOPWATCH(bestTime));
     } else {
-      lcd.print(isPro ? "est: N/A" : "Best:N/A");
+      display.print(isPro ? "est: N/A" : "Best:N/A");
     }
     DEBUG("Update best lap time: %d\n", bestTime);
   });
@@ -89,11 +89,11 @@ static void UpdateLastTime(bool force, int lastTime) {
   LIMIT(lastTime, 599999);
 
   LAZY_UPDATE(force, lastTime, {
-    lcd.setCursor(1, 2);
+    display.setCursor(1, 2);
     if (lastTime > 0) {
-      lcd.printf(FMT_STOPWATCH(lastTime));
+      display.printf(FMT_STOPWATCH(lastTime));
     } else {
-      lcd.print("ast: N/A");
+      display.print("ast: N/A");
     }
     DEBUG("Update last lap time: %d\n", lastTime);
   });
@@ -104,11 +104,11 @@ static void UpdateCurrTimePro(bool force, int currTime) {
   LIMIT(currTime, 599999);
 
   LAZY_UPDATE(force, currTime, {
-    lcd.setCursor(1, 1);
+    display.setCursor(1, 1);
     if (currTime > 0) {
-      lcd.printf(FMT_STOPWATCH(currTime));
+      display.printf(FMT_STOPWATCH(currTime));
     } else {
-      lcd.print("urr: N/A");
+      display.print("urr: N/A");
     }
     DEBUG("Update current lap time: %d\n", currTime);
   });
@@ -117,8 +117,8 @@ static void UpdateCurrTimePro(bool force, int currTime) {
 static void UpdateCurrTime(bool force, int currTime) {
   LIMIT(currTime, 5999999);
   LAZY_UPDATE(force, currTime, {
-    lcd.setCursor(11, 1);
-    lcd.printf(FMT_TIMESTAMP(currTime));
+    display.setCursor(11, 1);
+    display.printf(FMT_TIMESTAMP(currTime));
     DEBUG("Update current lap time: %d\n", currTime);
   });
 }
@@ -129,8 +129,8 @@ static void UpdateLap(bool force, int lap) {
   int x = isPro ? 18 : 14;
   int y = isPro ? 2 : 3;
   LAZY_UPDATE(force, lap, {
-    lcd.setCursor(x, y);
-    lcd.printf("%2d", lap);
+    display.setCursor(x, y);
+    display.printf("%2d", lap);
     DEBUG("Update lap: %d\n", lap);
   });
 }
@@ -141,11 +141,11 @@ static void UpdatePos(bool force, int pos) {
   int x = isPro ? 18 : 14;
   int y = isPro ? 1 : 2;
   LAZY_UPDATE(force, pos, {
-    lcd.setCursor(x, y);
+    display.setCursor(x, y);
     if (pos > 0) {
-      lcd.printf("%2d", pos);
+      display.printf("%2d", pos);
     } else {
-      lcd.print(" -");
+      display.print(" -");
     }
     DEBUG("Update pos: %d\n", pos);
   });
@@ -160,8 +160,8 @@ static void UpdateFuel(bool force, int fuel) {
     for (int i = 0; i < seg; i++) {
       bar[i] = 0xFF;
     }
-    lcd.setCursor(15, 3);
-    lcd.print(bar);
+    display.setCursor(15, 3);
+    display.print(bar);
     DEBUG("Update fuel: %d%%\n", fuel);
   });
 }
@@ -176,21 +176,21 @@ static void UpdateLED(bool force, float load) {
   }
 
   LAZY_UPDATE(force, leds, {
-    rgbBar.clear();
+    display.ledClear();
     for (int i = 0; i < leds; i++) {
-      RgbSet(i, RGB_COLOR_MAP[i]);
+      display.ledSet(i, RGB_COLOR_MAP[i]);
     }
-    rgbBar.show();
+    display.ledShow();
     DEBUG("Update LED: %d\n", leds);
   });
 }
 
 static void LedRedZone() {
   if (blinkShow) {
-    RgbFill(RGB_COLOR_MAP[RGB_LED_NUM - 1]);  // same with the last LED
-    rgbBar.show();
+    display.ledFill(RGB_COLOR_MAP[RGB_LED_NUM - 1]);  // same with the last LED
+    display.ledShow();
   } else {
-    RgbOFF();
+    display.ledOFF();
   }
 }
 
@@ -207,8 +207,8 @@ static void UpdateRpm(bool force, int rpm, int rpmIdle, int rpmMax) {
     auto bar = BLINK("\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF",
                      "                    ");
     LAZY_UPDATE(force, bar, {
-      lcd.setCursor(0, 0);
-      lcd.print(bar);
+      display.setCursor(0, 0);
+      display.print(bar);
       LedRedZone();
     });
     return;
@@ -230,8 +230,8 @@ static void UpdateRpm(bool force, int rpm, int rpmIdle, int rpmMax) {
         bar[i] = 0xFF;
         bar[20 - 1 - i] = 0xFF;
       }
-      lcd.setCursor(0, 0);
-      lcd.print(bar);
+      display.setCursor(0, 0);
+      display.print(bar);
       DEBUG("Update rpm: %.2f%%\n", load);
     });
 
@@ -243,8 +243,8 @@ static void UpdateRpm(bool force, int rpm, int rpmIdle, int rpmMax) {
       for (int i = 0; i < seg; i++) {
         bar[i] = 0xFF;
       }
-      lcd.setCursor(0, 0);
-      lcd.print(bar);
+      display.setCursor(0, 0);
+      display.print(bar);
       DEBUG("Update rpm: %.2f%%\n", load);
     });
   }
@@ -254,15 +254,15 @@ static void DashboardInit(bool force) {
   if (!force) {
     return;
   }
-  RgbOFF();
-  lcd.setCursor(0, 0);
-  lcd.print("                    ");
-  lcd.setCursor(0, 1);
-  lcd.print(isPro ? "C             POS:  " : "[        ]          ");
-  lcd.setCursor(0, 2);
-  lcd.print(isPro ? "L             LAP:  " : "          POS:      ");
-  lcd.setCursor(0, 3);
-  lcd.print(isPro ? "B             E    F" : "          LAP:      ");
+  display.ledOFF();
+  display.setCursor(0, 0);
+  display.print("                    ");
+  display.setCursor(0, 1);
+  display.print(isPro ? "C             POS:  " : "[        ]          ");
+  display.setCursor(0, 2);
+  display.print(isPro ? "L             LAP:  " : "          POS:      ");
+  display.setCursor(0, 3);
+  display.print(isPro ? "B             E    F" : "          LAP:      ");
 }
 
 void ForzaDashboardUpdate(const ForzaState *st) {
@@ -281,8 +281,8 @@ void ForzaDashboardUpdate(const ForzaState *st) {
   blinkShow = (blinkCounter++ < PERIOD);
   blinkCounter %= (PERIOD * 2);
 
-  BacklightUpdate(force, BACKLIGHT_DAY);
-  static_cast<void>(RgbLevelUpdate(force, RGB_LEVEL_DAY));
+  display.backlightUpdate(force, BACKLIGHT_DAY);
+  static_cast<void>(display.ledBrightnesslUpdate(force, RGB_LEVEL_DAY));
 
   DashboardInit(force);
   UpdateRpm(force, state.rpm, state.rpmIdle, state.rpmMax);

@@ -8,6 +8,8 @@
 // Fonts are from BigFont02_I2C by Harald Coeleveld.
 // ref: https://coeleveld.com/bigfont/
 
+#pragma once
+
 #include <LiquidCrystal_I2C.h>
 
 class LargeDigit {

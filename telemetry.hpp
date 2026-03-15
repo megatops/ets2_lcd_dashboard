@@ -19,6 +19,7 @@
 
 #include "forza_udp.hpp"
 #include "config.h"
+#include "utils.hpp"
 
 struct EtsState {
   // electric truck
@@ -86,15 +87,6 @@ enum TimerState {
   FORZA_ACTIVE,
   STATE_MAX,
 };
-
-constexpr bool DEBUG_ENABLE = false;  // verbose serial debug info
-
-#define DEBUG(...) \
-  do { \
-    if (DEBUG_ENABLE) { \
-      Serial.printf(__VA_ARGS__); \
-    } \
-  } while (0)
 
 static inline double KmConv(double km) {
   return SHOW_MILE ? (km / 1.61) : km;

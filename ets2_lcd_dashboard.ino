@@ -23,6 +23,7 @@
 #include "board.h"
 #include "telemetry.hpp"
 #include "dashboard.hpp"
+#include "display.hpp"
 
 // Server timeouts
 static constexpr int ETS2_MAX_FAILURE = 10;    // max retries before idle
@@ -186,9 +187,7 @@ static void DashboardTimerFunc() {
 
 void setup() {
   Serial.begin(SERIAL_BAUDRATE);
-  pinMode(LCD_LED_PWM, OUTPUT);
-  pinMode(RGB_LED_PIN, OUTPUT);
-  LcdInit(I2C_SDA, I2C_SCL, I2C_FREQ);
+  display.start();
   etsHTTP.setReuse(true);
   WifiConnect();
 

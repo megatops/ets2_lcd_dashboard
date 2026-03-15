@@ -17,38 +17,38 @@
 
 static void UpdateDate(bool force, int year, int month, int day, int weekday) {
   LAZY_UPDATE(force, weekday, {
-    lcd.setCursor(2, 3);
-    lcd.printf("%3.3s", dayShortStr(weekday));
+    display.setCursor(2, 3);
+    display.printf("%3.3s", dayShortStr(weekday));
   });
 
   LAZY_UPDATE(force, month, {
-    lcd.setCursor(7, 3);
-    lcd.printf("%3.3s", monthShortStr(month));
+    display.setCursor(7, 3);
+    display.printf("%3.3s", monthShortStr(month));
   });
 
   LAZY_UPDATE(force, day, {
-    lcd.setCursor(10, 3);
-    lcd.printf("%s%2d", (day < 10) ? "." : " ", day);
+    display.setCursor(10, 3);
+    display.printf("%s%2d", (day < 10) ? "." : " ", day);
   });
 
   LAZY_UPDATE(force, year, {
-    lcd.setCursor(15, 3);
-    lcd.printf("%d", year);
+    display.setCursor(15, 3);
+    display.printf("%d", year);
   });
 }
 
 static void UpdateTime(bool force, int hour, int minute, int second, bool pm) {
-  LAZY_UPDATE(force, hour, digit.print(2, 0, hour, 2, false));
-  LAZY_UPDATE(force, minute, digit.print(9, 0, minute, 2, true));
+  LAZY_UPDATE(force, hour, display.printLarge(2, 0, hour, 2, false));
+  LAZY_UPDATE(force, minute, display.printLarge(9, 0, minute, 2, true));
 
   LAZY_UPDATE(force, second, {
-    lcd.setCursor(16, 1);
-    lcd.printf("%02d", second);
+    display.setCursor(16, 1);
+    display.printf("%02d", second);
   });
 
   LAZY_UPDATE(force, pm, {
-    lcd.setCursor(16, 0);
-    lcd.print(pm ? "pm" : "am");
+    display.setCursor(16, 0);
+    display.print(pm ? "pm" : "am");
   });
 }
 
@@ -56,30 +56,30 @@ static void ClockInit(bool force) {
   if (!force) {
     return;
   }
-  RgbOFF();
-  lcd.setCursor(0, 0);
-  lcd.print("        \xA5           ");
-  lcd.setCursor(0, 1);
-  lcd.print("        \xA5           ");
-  lcd.setCursor(0, 2);
-  lcd.print("  ----------------- ");
-  lcd.setCursor(0, 3);
-  lcd.print("     ,       ,      ");
+  display.ledOFF();
+  display.setCursor(0, 0);
+  display.print("        \xA5           ");
+  display.setCursor(0, 1);
+  display.print("        \xA5           ");
+  display.setCursor(0, 2);
+  display.print("  ----------------- ");
+  display.setCursor(0, 3);
+  display.print("     ,       ,      ");
 }
 
 static void ShowNoClock(bool force) {
   if (!force) {
     return;
   }
-  RgbOFF();
-  lcd.setCursor(0, 0);
-  lcd.print("                    ");
-  lcd.setCursor(0, 1);
-  lcd.print("ETS2 Forza Dashboard");
-  lcd.setCursor(0, 2);
-  lcd.print("Waiting for game ...");
-  lcd.setCursor(0, 3);
-  lcd.print("                    ");
+  display.ledOFF();
+  display.setCursor(0, 0);
+  display.print("                    ");
+  display.setCursor(0, 1);
+  display.print("ETS2 Forza Dashboard");
+  display.setCursor(0, 2);
+  display.print("Waiting for game ...");
+  display.setCursor(0, 3);
+  display.print("                    ");
 }
 
 void ClockUpdate(time_t time) {
@@ -89,12 +89,12 @@ void ClockUpdate(time_t time) {
   if (!CLOCK_ENABLE) {
     // time is not available
     ShowNoClock(force);
-    BacklightUpdate(force, BACKLIGHT_CLOCK);
+    display.backlightUpdate(force, BACKLIGHT_CLOCK);
     return;
   }
 
   // dim the clock backlight as night light
-  BacklightUpdate(force, CLOCK_DIM_HOURS[hour(time)] ? BACKLIGHT_CLOCK_DIM : BACKLIGHT_CLOCK);
+  display.backlightUpdate(force, CLOCK_DIM_HOURS[hour(time)] ? BACKLIGHT_CLOCK_DIM : BACKLIGHT_CLOCK);
 
   ClockInit(force);
   UpdateTime(force, hourFormat12(time), minute(time), second(time), isPM(time));

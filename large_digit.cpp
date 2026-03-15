@@ -9,10 +9,7 @@
 // ref: https://coeleveld.com/bigfont/
 
 #include "large_digit.hpp"
-
-#ifndef ARRAY_SIZE
-#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))
-#endif
+#include "utils.hpp"
 
 LargeDigit::LargeDigit(LiquidCrystal_I2C &lcd)
   : lcd_(lcd) {}
