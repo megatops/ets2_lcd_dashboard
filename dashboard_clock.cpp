@@ -12,91 +12,102 @@
 //   Sun, Jan 17, 2024
 // +----+----+----+----
 
+#include "dashboard_clock.hpp"
 #include <TimeLib.h>
-#include "dashboard.hpp"
 
-static void UpdateDate(bool force, int year, int month, int day, int weekday) {
-  LAZY_UPDATE(force, weekday, {
-    display.setCursor(2, 3);
-    display.printf("%3.3s", dayShortStr(weekday));
+ClockDashboard::ClockDashboard(Display &display)
+  : Dashboard(display) {}
+
+void ClockDashboard::updateDate(time_t time) {
+  int y = year(time), m = month(time), d = day(time), wd = weekday(time);
+
+  LAZY_UPDATE(wd, {
+    display_.setCursor(2, 3);
+    display_.printf("%3.3s", dayShortStr(wd));
   });
 
-  LAZY_UPDATE(force, month, {
-    display.setCursor(7, 3);
-    display.printf("%3.3s", monthShortStr(month));
+  LAZY_UPDATE(m, {
+    display_.setCursor(7, 3);
+    display_.printf("%3.3s", monthShortStr(m));
   });
 
-  LAZY_UPDATE(force, day, {
-    display.setCursor(10, 3);
-    display.printf("%s%2d", (day < 10) ? "." : " ", day);
+  LAZY_UPDATE(d, {
+    display_.setCursor(10, 3);
+    display_.printf("%s%2d", (d < 10) ? "." : " ", d);
   });
 
-  LAZY_UPDATE(force, year, {
-    display.setCursor(15, 3);
-    display.printf("%d", year);
-  });
-}
-
-static void UpdateTime(bool force, int hour, int minute, int second, bool pm) {
-  LAZY_UPDATE(force, hour, display.printLarge(2, 0, hour, 2, false));
-  LAZY_UPDATE(force, minute, display.printLarge(9, 0, minute, 2, true));
-
-  LAZY_UPDATE(force, second, {
-    display.setCursor(16, 1);
-    display.printf("%02d", second);
-  });
-
-  LAZY_UPDATE(force, pm, {
-    display.setCursor(16, 0);
-    display.print(pm ? "pm" : "am");
+  LAZY_UPDATE(y, {
+    display_.setCursor(15, 3);
+    display_.printf("%d", y);
   });
 }
 
-static void ClockInit(bool force) {
-  if (!force) {
+void ClockDashboard::updateTime(time_t time) {
+  int h = hourFormat12(time), m = minute(time), s = second(time);
+  LAZY_UPDATE(h, display_.printLarge(2, 0, h, 2, false));
+  LAZY_UPDATE(m, display_.printLarge(9, 0, m, 2, true));
+  LAZY_UPDATE(s, {
+    display_.setCursor(16, 1);
+    display_.printf("%02d", s);
+  });
+
+  bool pm = isPM(time);
+  LAZY_UPDATE(pm, {
+    display_.setCursor(16, 0);
+    display_.print(pm ? "pm" : "am");
+  });
+}
+
+void ClockDashboard::clockInit() {
+  if (!force_) {
     return;
   }
-  display.ledOFF();
-  display.setCursor(0, 0);
-  display.print("        \xA5           ");
-  display.setCursor(0, 1);
-  display.print("        \xA5           ");
-  display.setCursor(0, 2);
-  display.print("  ----------------- ");
-  display.setCursor(0, 3);
-  display.print("     ,       ,      ");
+  display_.ledOFF();
+  display_.setCursor(0, 0);
+  display_.print("        \xA5           ");
+  display_.setCursor(0, 1);
+  display_.print("        \xA5           ");
+  display_.setCursor(0, 2);
+  display_.print("  ----------------- ");
+  display_.setCursor(0, 3);
+  display_.print("     ,       ,      ");
 }
 
-static void ShowNoClock(bool force) {
-  if (!force) {
+void ClockDashboard::noClock() {
+  if (!force_) {
     return;
   }
-  display.ledOFF();
-  display.setCursor(0, 0);
-  display.print("                    ");
-  display.setCursor(0, 1);
-  display.print("ETS2 Forza Dashboard");
-  display.setCursor(0, 2);
-  display.print("Waiting for game ...");
-  display.setCursor(0, 3);
-  display.print("                    ");
+  display_.ledOFF();
+  display_.setCursor(0, 0);
+  display_.print("                    ");
+  display_.setCursor(0, 1);
+  display_.print("ETS2 Forza Dashboard");
+  display_.setCursor(0, 2);
+  display_.print("Waiting for game ...");
+  display_.setCursor(0, 3);
+  display_.print("                    ");
 }
 
-void ClockUpdate(time_t time) {
-  bool force = (dashMode != DASH_CLOCK);  // mode change needs a full update
-  dashMode = DASH_CLOCK;
+GameState ClockDashboard::getGameData() {
+  return GameState::READY;
+}
+
+void ClockDashboard::freshDisplay(time_t time) {
+  // mode change needs a full update
+  force_ = (display_.mode != DisplayMode::CLOCK);
+  display_.mode = DisplayMode::CLOCK;
 
   if (!CLOCK_ENABLE) {
     // time is not available
-    ShowNoClock(force);
-    display.backlightUpdate(force, BACKLIGHT_CLOCK);
+    noClock();
+    display_.backlightUpdate(force_, BACKLIGHT_CLOCK);
     return;
   }
 
   // dim the clock backlight as night light
-  display.backlightUpdate(force, CLOCK_DIM_HOURS[hour(time)] ? BACKLIGHT_CLOCK_DIM : BACKLIGHT_CLOCK);
+  display_.backlightUpdate(force_, CLOCK_DIM_HOURS[hour(time)] ? BACKLIGHT_CLOCK_DIM : BACKLIGHT_CLOCK);
 
-  ClockInit(force);
-  UpdateTime(force, hourFormat12(time), minute(time), second(time), isPM(time));
-  UpdateDate(force, year(time), month(time), day(time), weekday(time));
+  clockInit();
+  updateTime(time);
+  updateDate(time);
 }

@@ -45,17 +45,20 @@ void Display::start() {
 }
 
 void Display::backlightUpdate(bool force, int level) {
-  LAZY_UPDATE(force, level, {
+  auto force_ = force;
+  LAZY_UPDATE(level, {
     analogWrite(lcdPwm_, level);
     DEBUG("Update backlight: %d\n", level);
   });
 }
 
-// NeoPixel brightness changes is buggy, the caller should redraw all the pixels
+// NeoPixel brightness changes is lossy, the caller must redraw all the pixels
 // or the colors may be changed or lost after set.
 bool Display::ledBrightnesslUpdate(bool force, uint8_t level) {
   bool changed = false;
-  LAZY_UPDATE(force, level, {
+
+  auto force_ = force;
+  LAZY_UPDATE(level, {
     changed = true;
     rgb_.setBrightness(level);
     DEBUG("Update LED brightness: %d\n", level);

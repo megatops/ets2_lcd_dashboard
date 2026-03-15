@@ -7,23 +7,22 @@
 
 #pragma once
 
+#include "config.h"
+
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))
 #endif
 
 #define LIMIT(var, max) ((var) = ((var) > (max)) ? (max) : (var))
 
-#define LAZY_UPDATE(force, value, code) \
+#define LAZY_UPDATE(value, code) \
   do { \
     static typeof(value) cached_; \
-    if ((force) || (value) != cached_) { \
+    if (force_ || (value) != cached_) { \
       code; \
       cached_ = (value); \
     } \
   } while (0)
-
-#define BLINK_IF(cond, msg1, msg2) ((!(cond) || blinkShow) ? (msg1) : (msg2))
-#define BLINK(msg1, msg2) (blinkShow ? (msg1) : (msg2))
 
 constexpr bool DEBUG_ENABLE = false;  // verbose serial debug info
 
@@ -33,3 +32,7 @@ constexpr bool DEBUG_ENABLE = false;  // verbose serial debug info
       Serial.printf(__VA_ARGS__); \
     } \
   } while (0)
+
+static inline double KmConv(double km) {
+  return SHOW_MILE ? (km / 1.61) : km;
+}

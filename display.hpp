@@ -13,6 +13,13 @@
 #include "large_digit.hpp"
 #include "config.h"
 
+enum DisplayMode {
+  UNKNOWN,
+  ETS2,
+  FORZA,
+  CLOCK,
+};
+
 // Facade for the entire display complex
 class Display : public Print {
 public:
@@ -61,6 +68,9 @@ public:
     ledClear();
     ledShow();
   }
+
+public:
+  DisplayMode mode = DisplayMode::UNKNOWN;
 
 private:
   int lcdSda_{};

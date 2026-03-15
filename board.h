@@ -5,8 +5,7 @@
 // This work is licensed under the terms of the GNU GPL, version 2 or later.
 // See the COPYING file in the top-level directory.
 
-#ifndef __BOARD_H__
-#define __BOARD_H__
+#pragma once
 
 #include <cstdint>
 
@@ -27,5 +26,3 @@ constexpr int RGB_LED_NUM = 8;  // the most common 8x WS2812 module
 // Bus frequencies
 constexpr int SERIAL_BAUDRATE = 2000000;  // 2Mb USB serial
 constexpr uint32_t I2C_FREQ = 400000;     // 400kHz fast mode
-
-#endif

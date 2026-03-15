@@ -5,8 +5,7 @@
 // This work is licensed under the terms of the GNU GPL, version 2 or later.
 // See the COPYING file in the top-level directory.
 
-#ifndef __CONFIG_H__
-#define __CONFIG_H__
+#pragma once
 
 #include <cstdint>
 #include "board.h"
@@ -139,5 +138,3 @@ constexpr RgbColor RGB_COLOR_MAP[RGB_LED_NUM]{
   { 255, 0, 0 },  // red
   { 255, 0, 0 },
 };
-
-#endif

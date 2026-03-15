@@ -8,8 +8,7 @@
 // Refer: https://support.forzamotorsport.net/hc/en-us/articles/21742934024211-Forza-Motorsport-Data-Out-Documentation
 // Refer: https://github.com/geeooff/forza-data-web
 
-#ifndef __FORZA_UDP_H__
-#define __FORZA_UDP_H__
+#pragma once
 
 #include <cstdint>
 
@@ -209,5 +208,3 @@ union PACKED ForzaPkt {
 static inline bool IsForzaPacket(size_t len) {
   return (len == sizeof(ForzaMotorsportPktV1) || len == sizeof(ForzaMotorsportPktV2) || len == sizeof(ForzaHorizonPkt));
 }
-
-#endif

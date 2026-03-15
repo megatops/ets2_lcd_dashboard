@@ -21,9 +21,10 @@
 
 #include "config.h"
 #include "board.h"
-#include "telemetry.hpp"
-#include "dashboard.hpp"
 #include "display.hpp"
+#include "dashboard_clock.hpp"
+#include "dashboard_ets2.hpp"
+#include "dashboard_forza.hpp"
 
 // Server timeouts
 static constexpr int ETS2_MAX_FAILURE = 10;    // max retries before idle
@@ -37,6 +38,11 @@ static constexpr int NTP_UPDATE = 60 * 60 * 1000;  // interval to sync clock wit
 static WiFiUDP ntpUDP, forzaUDP;
 static HTTPClient etsHTTP;
 static NTPClient ntp(ntpUDP, NTP_SERVER, (TIME_ZONE - DST * 60) * 60, NTP_UPDATE);
+
+static Display display(I2C_SDA, I2C_SCL, I2C_FREQ, LCD_LED_PWM, RGB_LED_PIN, LCD_ADDR);
+static ClockDashboard clockDash(display);
+static Ets2Dashboard ets2Dash(display, etsHTTP);
+static ForzaDashboard forzaDash(display, forzaUDP);
 
 static void WifiConnect(void (*tick)() = nullptr) {
   Serial.printf("Connecting to %s .", SSID);
@@ -67,11 +73,11 @@ static void ClockInitialSync() {
   }
 
   Serial.printf(" Local Time: %s\n", ntp.getFormattedTime().c_str());
-  ClockUpdate(ntp.getEpochTime());
+  clockDash.freshDisplay(ntp.getEpochTime());
 }
 
 static void ClockTick() {
-  if (!CLOCK_ENABLE || dashMode != DASH_CLOCK) {
+  if (!CLOCK_ENABLE || display.mode != DisplayMode::CLOCK) {
     return;
   }
 
@@ -86,7 +92,7 @@ static void ClockTick() {
 
   // the time may have been updated by NTP, fetch it again
   lastUpdate = ntp.getEpochTime();
-  ClockUpdate(lastUpdate);
+  clockDash.freshDisplay(lastUpdate);
 }
 
 static SoftwareTimer dashboardTimer(INIT_DELAY, &DashboardTimerFunc);
@@ -148,39 +154,35 @@ static bool IsDriving(GameState game) {
 
 static void DashboardTimerFunc() {
   GameState game = GameState::SERVER_DOWN;
-  EtsState etsState{};
-  ForzaState forzaState{};
 
   // ETS2 query
   if (timerState <= TimerState::IDLE || timerState == TimerState::ETS2_ACIVE) {
-    game = Ets2TelemetryQuery(etsHTTP, etsState);
+    game =  ets2Dash.getGameData();
     DashboardTimerStateTrans("ETS2", game, ETS2_MAX_FAILURE, TimerState::ETS2_ACIVE);
   }
 
   // Forza query
   if (timerState <= TimerState::IDLE || timerState == TimerState::FORZA_ACTIVE) {
-    game = ForzaTelemetryQuery(forzaUDP, forzaState);
+    game = forzaDash.getGameData();
     DashboardTimerStateTrans("Forza", game, FORZA_MAX_FAILURE, TimerState::FORZA_ACTIVE);
   }
 
   if (IsDriving(game)) {
-    // show cached state on temporary failure.
-    bool fresh = (game == GameState::DRIVING);
     switch (timerState) {
       case TimerState::ETS2_ACIVE:
-        Ets2DashboardUpdate(fresh ? &etsState : nullptr, ntp.getEpochTime());
+        ets2Dash.freshDisplay(ntp.getEpochTime());
         break;
       case TimerState::FORZA_ACTIVE:
-        ForzaDashboardUpdate(fresh ? &forzaState : nullptr);
+        forzaDash.freshDisplay(ntp.getEpochTime());
         break;
       default:
         Serial.println("Unexpected dashboard state!");
         break;
     }
 
-  } else if (dashMode != DASH_CLOCK) {
+  } else if (display.mode != DisplayMode::CLOCK) {
     // need to switch to clock mode (not driving, or inactive)
-    ClockUpdate(ntp.getEpochTime());
+    clockDash.freshDisplay(ntp.getEpochTime());
   }
   // otherwise let clock_tick() to update the clock display
 }

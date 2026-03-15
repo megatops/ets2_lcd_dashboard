@@ -1,0 +1,62 @@
+// ETS2 LCD Dashboard for ESP8266/ESP32C3
+//
+// Copyright (C) 2026 Ding Zhaojie <zhaojie_ding@msn.com>
+//
+// This work is licensed under the terms of the GNU GPL, version 2 or later.
+// See the COPYING file in the top-level directory.
+
+#pragma once
+
+#include <WiFiUdp.h>
+#include "dashboard.hpp"
+#include "forza_udp.hpp"
+
+struct ForzaState {
+  // car status
+  int speed;
+  int gear;
+  int rpmIdle;
+  int rpm;
+  int rpmMax;
+  int fuel;    // percentage
+  bool isPro;  // high performance car
+
+  // race
+  int lap;
+  int pos;
+  int bestLap;  // msec
+  int lastLap;  // msec
+  int currLap;  // msec
+};
+
+class ForzaDashboard : public Dashboard {
+public:
+  ForzaDashboard(Display &display, WiFiUDP &udp);
+  GameState getGameData() override;
+  void freshDisplay(time_t time) override;
+
+private:
+  void dashboardInit();
+  void updateSpeed();
+  void updateGear();
+  void updateBestTime();
+  void updateLastTime();
+  void updateCurrTime();
+  void updateLap();
+  void updatePos();
+  void updateFuel();
+  void updateRpm();
+
+  void printN(int x, int y);
+  void updateLED(float load);
+  void ledRedZone();
+  GameState forzaTelemetryParse(size_t len);
+
+private:
+  WiFiUDP &udp_;
+
+  ForzaState state_{};
+  bool isPro_{};    // performance dashboard
+  bool inRed_{};    // rpm currently in red zone
+  ForzaPkt pkt_{};  //packet buffer
+};

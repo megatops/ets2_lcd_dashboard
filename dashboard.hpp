@@ -7,24 +7,43 @@
 
 #pragma once
 
-#include <Adafruit_NeoPixel.h>
-#include <LiquidCrystal_I2C.h>
-#include "large_digit.hpp"
-#include "telemetry.hpp"
+#include <time.h>
 #include "config.h"
 #include "display.hpp"
 #include "utils.hpp"
 
-enum DashMode {
-  DASH_UNKNOWN,
-  DASH_ETS2,
-  DASH_FORZA,
-  DASH_CLOCK,
+enum GameState {
+  SERVER_DOWN,
+  NOT_START,
+
+  READY,
+  DRIVING,  // driving the truck
 };
 
-extern DashMode dashMode;
-extern Display display;
+enum TimerState {
+  INIT,
+  IDLE,
 
-void ClockUpdate(time_t time);
-void Ets2DashboardUpdate(const EtsState *st, time_t time);
-void ForzaDashboardUpdate(const ForzaState *st);
+  ETS2_ACIVE,
+  FORZA_ACTIVE,
+  STATE_MAX,
+};
+
+#define BLINK_IF(cond, msg1, msg2) ((!(cond) || blinkShow_) ? (msg1) : (msg2))
+#define BLINK(msg1, msg2) (blinkShow_ ? (msg1) : (msg2))
+
+class Dashboard {
+public:
+  Dashboard(Display &display)
+    : display_(display) {}
+  virtual ~Dashboard() {}
+
+  virtual GameState getGameData();
+  virtual void freshDisplay(time_t time);
+
+protected:
+  Display &display_;
+  bool blinkShow_{};    // synchronize the blinks
+  int blinkCounter_{};  // count blink duration
+  bool force_{};        // force upddate (bypass cache)
+};
