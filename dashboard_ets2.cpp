@@ -116,8 +116,10 @@ static DeserializationOption::Filter &ets2TelemetryFilter() {
   return filter;
 }
 
-Ets2Dashboard::Ets2Dashboard(Display &display, HTTPClient &http)
-  : Dashboard(display), http_(http) {}
+Ets2Dashboard::Ets2Dashboard(Display &display, const char *api)
+  : Dashboard(display), api_(String(api)) {
+  http_.setReuse(true);
+}
 
 GameState Ets2Dashboard::ets2TelemetryParse(String &json) {
   StaticJsonDocument<JSON_DOC_SIZE> ets;
@@ -189,7 +191,7 @@ GameState Ets2Dashboard::ets2TelemetryParse(String &json) {
 GameState Ets2Dashboard::getGameData() {
   GameState game = GameState::SERVER_DOWN;
 
-  http_.begin(client_, ETS_API);
+  http_.begin(client_, api_.c_str());
 #ifndef ESP8266
   http_.setConnectTimeout(HTTP_CONN_TIMEOUT);
 #endif
@@ -212,7 +214,7 @@ void Ets2Dashboard::updateSpeed() {
   LIMIT(speed, 199);
 
   LAZY_UPDATE(speed, {
-    display_.printLarge(5, 1, speed, 3, false);
+    disp_.printLarge(5, 1, speed, 3, false);
     DEBUG("Update speed: %d\n", speed);
   });
 }
@@ -222,11 +224,11 @@ void Ets2Dashboard::updateEtaDist() {
   LIMIT(etaDist, 9999);
 
   LAZY_UPDATE(etaDist, {
-    display_.setCursor(8, 0);
+    disp_.setCursor(8, 0);
     if (etaDist >= 1000) {
-      display_.printf("%4d", etaDist);  // 8888km
+      disp_.printf("%4d", etaDist);  // 8888km
     } else {
-      display_.printf("%3d ", etaDist);  // 888 km
+      disp_.printf("%3d ", etaDist);  // 888 km
     }
     DEBUG("Update ETA distance: %d\n", etaDist);
   });
@@ -237,8 +239,7 @@ void Ets2Dashboard::updateEtaTime() {
   LIMIT(etaTime, 99 * 60 + 59);
 
   LAZY_UPDATE(etaTime, {
-    display_.setCursor(15, 0);
-    display_.printf("%02d:%02d", etaTime / 60, etaTime % 60);
+    PRINTF_XY(15, 0, "%02d:%02d", etaTime / 60, etaTime % 60);
     DEBUG("Update ETA time: %d\n", etaTime);
   });
 }
@@ -248,11 +249,11 @@ void Ets2Dashboard::updateCruise() {
   LIMIT(cruise, 999);
 
   LAZY_UPDATE(cruise, {
-    display_.setCursor(1, 2);
+    disp_.setCursor(1, 2);
     if (cruise > 0) {
-      display_.printf("%3d", cruise);
+      disp_.printf("%3d", cruise);
     } else {
-      display_.print("---");
+      disp_.print("---");
     }
     DEBUG("Update cruise: %d\n", cruise);
   });
@@ -264,11 +265,11 @@ void Ets2Dashboard::updateLimit() {
   LIMIT(limit, 999);
 
   LAZY_UPDATE(limit, {
-    display_.setCursor(16, 2);
+    disp_.setCursor(16, 2);
     if (limit > 0) {
-      display_.printf("%3d", limit);
+      disp_.printf("%3d", limit);
     } else {
-      display_.print("---");
+      disp_.print("---");
     }
     DEBUG("Update speed limit: %d\n", limit);
   });
@@ -276,8 +277,7 @@ void Ets2Dashboard::updateLimit() {
   // blink the label as speeding warning
   auto label = BLINK_IF(speeding, "Limit", "     ");
   LAZY_UPDATE(label, {
-    display_.setCursor(15, 1);
-    display_.print(label);
+    PRINT_XY(15, 1, label);
   });
 }
 
@@ -293,8 +293,7 @@ void Ets2Dashboard::updateFuel() {
       }
       fuelDist = cached_;  // keep the old display
     }
-    display_.setCursor(16, 3);
-    display_.printf("%4d", fuelDist);
+    PRINTF_XY(16, 3, "%4d", fuelDist);
     DEBUG("Update fuel distance: %d\n", fuelDist);
   });
 
@@ -304,16 +303,14 @@ void Ets2Dashboard::updateFuel() {
     for (int i = 0; i < seg; i++) {
       bar[i] = 0xFF;
     }
-    display_.setCursor(5, 3);
-    display_.print(bar);
+    PRINT_XY(5, 3, bar);
     DEBUG("Update fuel: %d%%\n", fuel);
   });
 
   // blink the label as fuel warning
   auto label = BLINK_IF(state_.fuelWarn, state_.isEV ? "Batt" : "Fuel", "    ");
   LAZY_UPDATE(label, {
-    display_.setCursor(0, 3);
-    display_.print(label);
+    PRINT_XY(0, 3, label);
   });
 }
 
@@ -322,19 +319,16 @@ void Ets2Dashboard::updateClock(time_t time) {
       m = minute(time);
 
   LAZY_UPDATE(h, {
-    display_.setCursor(0, 0);
-    display_.printf("%02d", h);
+    PRINTF_XY(0, 0, "%02d", h);
   });
 
   LAZY_UPDATE(m, {
-    display_.setCursor(3, 0);
-    display_.printf("%02d", m);
+    PRINTF_XY(3, 0, "%02d", m);
   });
 
   auto label = BLINK_IF(CLOCK_BLINK, ":", " ");
   LAZY_UPDATE(label, {
-    display_.setCursor(2, 0);
-    display_.print(label);
+    PRINT_XY(2, 0, label);
   });
 }
 
@@ -343,24 +337,24 @@ void Ets2Dashboard::updateLEDs() {
 
   // special: blinkers
   if (state_.leftBlinker) {
-    display_.ledSet(LedSlot::LBLINKER, blinkShow_ ? LED_INFO : LED_OFF);
+    disp_.ledSet(LedSlot::LBLINKER, blinkShow_ ? LED_INFO : LED_OFF);
     changed = true;
   }
   LAZY_UPDATE(state_.leftBlinker, {
     if (!state_.leftBlinker) {
-      display_.ledSet(LedSlot::LBLINKER, LED_OFF);
+      disp_.ledSet(LedSlot::LBLINKER, LED_OFF);
       changed = true;
     }
     DEBUG("Update leftBlinker: %d\n", state_.leftBlinker);
   });
 
   if (state_.rightBlinker) {
-    display_.ledSet(LedSlot::RBLINKER, blinkShow_ ? LED_INFO : LED_OFF);
+    disp_.ledSet(LedSlot::RBLINKER, blinkShow_ ? LED_INFO : LED_OFF);
     changed = true;
   }
   LAZY_UPDATE(state_.rightBlinker, {
     if (!state_.rightBlinker) {
-      display_.ledSet(LedSlot::RBLINKER, LED_OFF);
+      disp_.ledSet(LedSlot::RBLINKER, LED_OFF);
       changed = true;
     }
     DEBUG("Update rightBlinker: %d\n", state_.rightBlinker);
@@ -369,7 +363,7 @@ void Ets2Dashboard::updateLEDs() {
   // special: multi-state
   int airWarnLevel = state_.airEmerg ? 2 : (state_.airWarn ? 1 : 0);
   LAZY_UPDATE(airWarnLevel, {
-    display_.ledSet(LedSlot::AIR_WARN, (airWarnLevel == 2) ? LED_ALERT : ((airWarnLevel == 1) ? LED_WARN : LED_OFF));
+    disp_.ledSet(LedSlot::AIR_WARN, (airWarnLevel == 2) ? LED_ALERT : ((airWarnLevel == 1) ? LED_WARN : LED_OFF));
     changed = true;
     DEBUG("Update airWarnLevel: %d\n", airWarnLevel);
   });
@@ -377,7 +371,7 @@ void Ets2Dashboard::updateLEDs() {
 #define UPDATE_INDICATOR(flag, slot, color) \
   do { \
     LAZY_UPDATE((flag), { \
-      display_.ledSet((slot), (flag) ? (color) : LED_OFF); \
+      disp_.ledSet((slot), (flag) ? (color) : LED_OFF); \
       changed = true; \
       DEBUG("Update " #flag ": %d\n", (flag)); \
     }); \
@@ -395,7 +389,7 @@ void Ets2Dashboard::updateLEDs() {
 #undef UPDATE_INDICATOR
 
   if (changed) {
-    display_.ledShow();
+    disp_.ledShow();
   }
 }
 
@@ -403,28 +397,24 @@ void Ets2Dashboard::dashboardInit() {
   if (!force_) {
     return;
   }
-  display_.ledOFF();
-  display_.setCursor(0, 0);
-  display_.printf("%s \x7e     %s   :  ", CLOCK_ENABLE ? "     " : "Navi:", SHOW_MILE ? "mi" : "km");
-  display_.setCursor(0, 1);
-  display_.print("Cruis               ");
-  display_.setCursor(0, 2);
-  display_.print("[   ]          [   ]");
-  display_.setCursor(0, 3);
-  display_.print("                    ");
+  disp_.ledOFF();
+  PRINTF_XY(0, 0, "%s \x7e     %s   :  ", CLOCK_ENABLE ? "     " : "Navi:", SHOW_MILE ? "mi" : "km");
+  PRINT_XY(0, 1, "Cruis               ");
+  PRINT_XY(0, 2, "[   ]          [   ]");
+  PRINT_XY(0, 3, "                    ");
 }
 
 void Ets2Dashboard::freshDisplay(time_t time) {
   // mode change needs a full update
-  force_ = (display_.mode != DisplayMode::ETS2);
-  display_.mode = DisplayMode::ETS2;
+  force_ = (disp_.mode != DisplayMode::ETS2);
+  disp_.mode = DisplayMode::ETS2;
   blinkShow_ = !blinkShow_;  // 1Hz @ 2FPS
 
   // no backlight when engine off, dim when headlight on
   int backLight = state_.headlight ? BACKLIGHT_NIGHT : BACKLIGHT_DAY;
-  display_.backlightUpdate(force_, state_.on ? backLight : BACKLIGHT_OFF);
+  disp_.backlightUpdate(force_, state_.on ? backLight : BACKLIGHT_OFF);
   int ledLight = state_.headlight ? RGB_LEVEL_NIGHT : RGB_LEVEL_DAY;
-  bool freshLed = display_.ledBrightnesslUpdate(force_, state_.on ? ledLight : RGB_LEVEL_OFF);
+  bool freshLed = disp_.ledBrightnesslUpdate(force_, state_.on ? ledLight : RGB_LEVEL_OFF);
 
   dashboardInit();
   if (CLOCK_ENABLE) {

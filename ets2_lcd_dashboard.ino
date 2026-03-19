@@ -6,23 +6,19 @@
 // See the COPYING file in the top-level directory.
 
 #include <cfloat>
-#include <NTPClient.h>
 #include <SoftwareTimer.h>
 #include <TimeLib.h>
-#include <WiFiUdp.h>
 
 #ifdef ESP8266
 #include <ESP8266WiFi.h>
-#include <ESP8266HTTPClient.h>
 #else
 #include <WiFi.h>
-#include <HTTPClient.h>
 #endif
 
 #include "config.h"
 #include "board.h"
 #include "display.hpp"
-#include "dashboard_clock.hpp"
+#include "ntp_clock.hpp"
 #include "dashboard_ets2.hpp"
 #include "dashboard_forza.hpp"
 
@@ -35,16 +31,12 @@ static constexpr int IDLE_DELAY = 5000;            // API query interval when id
 static constexpr int INIT_DELAY = 1000;            // API query interval when just startup (quicker to back to game)
 static constexpr int NTP_UPDATE = 60 * 60 * 1000;  // interval to sync clock with NTP
 
-static WiFiUDP ntpUDP, forzaUDP;
-static HTTPClient etsHTTP;
-static NTPClient ntp(ntpUDP, NTP_SERVER, (TIME_ZONE - DST * 60) * 60, NTP_UPDATE);
+static Display disp(I2C_SDA, I2C_SCL, I2C_FREQ, LCD_LED_PWM, RGB_LED_PIN, LCD_ADDR);
+static NtpClock ntpClock(disp, NTP_SERVER, (TIME_ZONE - DST * 60) * 60, NTP_UPDATE);
+static Ets2Dashboard ets2Dash(disp, ETS_API);
+static ForzaDashboard forzaDash(disp, FORZA_PORT);
 
-static Display display(I2C_SDA, I2C_SCL, I2C_FREQ, LCD_LED_PWM, RGB_LED_PIN, LCD_ADDR);
-static ClockDashboard clockDash(display);
-static Ets2Dashboard ets2Dash(display, etsHTTP);
-static ForzaDashboard forzaDash(display, forzaUDP);
-
-static void WifiConnect(void (*tick)() = nullptr) {
+static void WifiConnect(std::function<void()> tick) {
   Serial.printf("Connecting to %s .", SSID);
 
   WiFi.mode(WIFI_STA);
@@ -52,47 +44,17 @@ static void WifiConnect(void (*tick)() = nullptr) {
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
-
-    if (tick) {
-      (*tick)();
-    }
+    tick();
   }
 
   Serial.printf(" Local IP: %s\n", WiFi.localIP().toString().c_str());
-  Serial.printf("Listening Forza telemetry on: %u\n", FORZA_PORT);
-  forzaUDP.begin(FORZA_PORT);
+  ntpClock.connect();
+  forzaDash.listen();
 }
 
 static void ClockInitialSync() {
-  Serial.printf("NTP syncing with %s .", NTP_SERVER);
-
-  ntp.begin();
-  while (!ntp.forceUpdate()) {
-    delay(500);
-    Serial.print(".");
-  }
-
-  Serial.printf(" Local Time: %s\n", ntp.getFormattedTime().c_str());
-  clockDash.freshDisplay(ntp.getEpochTime());
-}
-
-static void ClockTick() {
-  if (!CLOCK_ENABLE || display.mode != DisplayMode::CLOCK) {
-    return;
-  }
-
-  static time_t lastUpdate = -1;
-  if (ntp.getEpochTime() == lastUpdate) {
-    return;
-  }
-
-  if (WiFi.status() == WL_CONNECTED && ntp.update()) {
-    Serial.printf("NTP sync success: %s.\n", ntp.getFormattedTime().c_str());
-  }
-
-  // the time may have been updated by NTP, fetch it again
-  lastUpdate = ntp.getEpochTime();
-  clockDash.freshDisplay(lastUpdate);
+  ntpClock.initialSync();
+  ntpClock.freshDisplay();
 }
 
 static SoftwareTimer dashboardTimer(INIT_DELAY, &DashboardTimerFunc);
@@ -170,28 +132,27 @@ static void DashboardTimerFunc() {
   if (IsDriving(game)) {
     switch (timerState) {
       case TimerState::ETS2_ACIVE:
-        ets2Dash.freshDisplay(ntp.getEpochTime());
+        ets2Dash.freshDisplay(ntpClock.getEpochTime());
         break;
       case TimerState::FORZA_ACTIVE:
-        forzaDash.freshDisplay(ntp.getEpochTime());
+        forzaDash.freshDisplay(ntpClock.getEpochTime());
         break;
       default:
         Serial.println("Unexpected dashboard state!");
         break;
     }
 
-  } else if (display.mode != DisplayMode::CLOCK) {
+  } else if (disp.mode != DisplayMode::CLOCK) {
     // need to switch to clock mode (not driving, or inactive)
-    clockDash.freshDisplay(ntp.getEpochTime());
+    ntpClock.freshDisplay();
   }
-  // otherwise let clock_tick() to update the clock display
+  // otherwise let clock_tick() to update the clock disp
 }
 
 void setup() {
   Serial.begin(SERIAL_BAUDRATE);
-  display.start();
-  etsHTTP.setReuse(true);
-  WifiConnect();
+  disp.start();
+  WifiConnect([]{});
 
   if (CLOCK_ENABLE) {
     ClockInitialSync();
@@ -201,12 +162,11 @@ void setup() {
 void loop() {
   if (WiFi.status() != WL_CONNECTED) {
     Serial.println("WiFi disconnected.");
-    ntp.end();
-    forzaUDP.stop();
-    WifiConnect(&ClockTick);
-    ntp.begin();
+    ntpClock.disconnect();
+    forzaDash.stop();
+    WifiConnect([]{ntpClock.tick();});
   }
 
   dashboardTimer.tick();
-  ClockTick();
+  ntpClock.tick();
 }

@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <Arduino.h>
 #include <WiFiUdp.h>
 #include "dashboard.hpp"
 #include "forza_udp.hpp"
@@ -31,9 +32,18 @@ struct ForzaState {
 
 class ForzaDashboard : public Dashboard {
 public:
-  ForzaDashboard(Display &display, WiFiUDP &udp);
+  ForzaDashboard(Display &display, uint16_t port);
   GameState getGameData() override;
   void freshDisplay(time_t time) override;
+
+  inline void listen() {
+    Serial.printf("Listening Forza telemetry on: %u\n", port_);
+    udp_.begin(port_);
+  }
+
+  inline void stop() {
+    udp_.stop();
+  }
 
 private:
   void dashboardInit();
@@ -53,8 +63,8 @@ private:
   GameState forzaTelemetryParse(size_t len);
 
 private:
-  WiFiUDP &udp_;
-
+  uint16_t port_;
+  WiFiUDP udp_{};
   ForzaState state_{};
   bool isPro_{};    // performance dashboard
   bool inRed_{};    // rpm currently in red zone

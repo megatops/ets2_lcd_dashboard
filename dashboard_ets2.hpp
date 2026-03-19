@@ -50,7 +50,7 @@ struct EtsState {
 
 class Ets2Dashboard : public Dashboard {
 public:
-  Ets2Dashboard(Display &display, HTTPClient &http);
+  Ets2Dashboard(Display &display, const char *api);
   GameState getGameData() override;
   void freshDisplay(time_t time) override;
 
@@ -68,8 +68,9 @@ private:
   GameState ets2TelemetryParse(String &json);
 
 private:
-  HTTPClient &http_;
+  String api_;
 
+  HTTPClient http_{};
   WiFiClient client_{};
   EtsState state_{};
 };

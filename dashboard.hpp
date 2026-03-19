@@ -35,15 +35,27 @@ enum TimerState {
 class Dashboard {
 public:
   Dashboard(Display &display)
-    : display_(display) {}
+    : disp_(display) {}
   virtual ~Dashboard() {}
 
   virtual GameState getGameData();
   virtual void freshDisplay(time_t time);
 
 protected:
-  Display &display_;
+  Display &disp_;
   bool blinkShow_{};    // synchronize the blinks
   int blinkCounter_{};  // count blink duration
-  bool force_{};        // force upddate (bypass cache)
+  bool force_{};        // force update (bypass cache)
 };
+
+#define PRINTF_XY(x, y, ...) \
+  do { \
+    disp_.setCursor(x, y); \
+    disp_.printf(__VA_ARGS__); \
+  } while (0)
+
+#define PRINT_XY(x, y, str) \
+  do { \
+    disp_.setCursor(x, y); \
+    disp_.print(str); \
+  } while (0)

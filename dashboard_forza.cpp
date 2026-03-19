@@ -24,8 +24,10 @@
 #define FMT_STOPWATCH(time) "%02d:%02d.%02d", (time) / 100 / 60, (time) / 100 % 60, (time) % 100
 #define FMT_TIMESTAMP(time) "%02d:%02d.%03d", (time) / 1000 / 60, (time) / 1000 % 60, (time) % 1000
 
-ForzaDashboard::ForzaDashboard(Display &display, WiFiUDP &udp)
-  : Dashboard(display), udp_(udp) {}
+ForzaDashboard::ForzaDashboard(Display &display, uint16_t port)
+  : Dashboard(display) {
+  port_ = port;
+}
 
 GameState ForzaDashboard::forzaTelemetryParse(size_t len) {
   const ForzaSledData *sled = nullptr;
@@ -101,10 +103,9 @@ void ForzaDashboard::updateSpeed() {
 
   LAZY_UPDATE(speed, {
     if (isPro_) {
-      display_.setCursor(10, 3);
-      display_.printf("%03d", speed);
+      PRINTF_XY(10, 3, "%03d", speed);
     } else {
-      display_.printLarge(0, 2, speed, 3, false);
+      disp_.printLarge(0, 2, speed, 3, false);
     }
     DEBUG("Update speed: %d\n", speed);
   });
@@ -112,14 +113,14 @@ void ForzaDashboard::updateSpeed() {
 
 void ForzaDashboard::printN(int x, int y) {
   // use the strokes defined in LargeDigit
-  display_.setCursor(x, y);
-  display_.write(1);
-  display_.write(7);
-  display_.write(0);
-  display_.setCursor(x, y + 1);
-  display_.write(1);
-  display_.write(' ');
-  display_.write(0);
+  disp_.setCursor(x, y);
+  disp_.write(1);
+  disp_.write(7);
+  disp_.write(0);
+  disp_.setCursor(x, y + 1);
+  disp_.write(1);
+  disp_.write(' ');
+  disp_.write(0);
 }
 
 void ForzaDashboard::updateGear() {
@@ -130,7 +131,7 @@ void ForzaDashboard::updateGear() {
   int y = isPro_ ? 1 : 2;
   LAZY_UPDATE(gear, {
     if (gear > 0) {
-      display_.printLarge(x, y, gear, 1, false);
+      disp_.printLarge(x, y, gear, 1, false);
     } else {
       printN(x, y);
     }
@@ -145,11 +146,11 @@ void ForzaDashboard::updateBestTime() {
 
   int y = isPro_ ? 3 : 1;
   LAZY_UPDATE(bestTime, {
-    display_.setCursor(1, y);
+    disp_.setCursor(1, y);
     if (bestTime > 0) {
-      display_.printf(FMT_STOPWATCH(bestTime));
+      disp_.printf(FMT_STOPWATCH(bestTime));
     } else {
-      display_.print(isPro_ ? "est: N/A" : "Best:N/A");
+      disp_.print(isPro_ ? "est: N/A" : "Best:N/A");
     }
     DEBUG("Update best lap time: %d\n", bestTime);
   });
@@ -161,11 +162,11 @@ void ForzaDashboard::updateLastTime() {
   LIMIT(lastTime, 599999);
 
   LAZY_UPDATE(lastTime, {
-    display_.setCursor(1, 2);
+    disp_.setCursor(1, 2);
     if (lastTime > 0) {
-      display_.printf(FMT_STOPWATCH(lastTime));
+      disp_.printf(FMT_STOPWATCH(lastTime));
     } else {
-      display_.print("ast: N/A");
+      disp_.print("ast: N/A");
     }
     DEBUG("Update last lap time: %d\n", lastTime);
   });
@@ -179,11 +180,11 @@ void ForzaDashboard::updateCurrTime() {
     LIMIT(currTime, 599999);
 
     LAZY_UPDATE(currTime, {
-      display_.setCursor(1, 1);
+      disp_.setCursor(1, 1);
       if (currTime > 0) {
-        display_.printf(FMT_STOPWATCH(currTime));
+        disp_.printf(FMT_STOPWATCH(currTime));
       } else {
-        display_.print("urr: N/A");
+        disp_.print("urr: N/A");
       }
       DEBUG("Update current lap time: %d\n", currTime);
     });
@@ -191,8 +192,7 @@ void ForzaDashboard::updateCurrTime() {
   } else {
     LIMIT(currTime, 5999999);
     LAZY_UPDATE(currTime, {
-      display_.setCursor(11, 1);
-      display_.printf(FMT_TIMESTAMP(currTime));
+      PRINTF_XY(11, 1, FMT_TIMESTAMP(currTime));
       DEBUG("Update current lap time: %d\n", currTime);
     });
   }
@@ -205,8 +205,7 @@ void ForzaDashboard::updateLap() {
   int x = isPro_ ? 18 : 14;
   int y = isPro_ ? 2 : 3;
   LAZY_UPDATE(lap, {
-    display_.setCursor(x, y);
-    display_.printf("%2d", lap);
+    PRINTF_XY(x, y, "%2d", lap);
     DEBUG("Update lap: %d\n", lap);
   });
 }
@@ -218,11 +217,11 @@ void ForzaDashboard::updatePos() {
   int x = isPro_ ? 18 : 14;
   int y = isPro_ ? 1 : 2;
   LAZY_UPDATE(pos, {
-    display_.setCursor(x, y);
+    disp_.setCursor(x, y);
     if (pos > 0) {
-      display_.printf("%2d", pos);
+      disp_.printf("%2d", pos);
     } else {
-      display_.print(" -");
+      disp_.print(" -");
     }
     DEBUG("Update pos: %d\n", pos);
   });
@@ -238,8 +237,7 @@ void ForzaDashboard::updateFuel() {
     for (int i = 0; i < seg; i++) {
       bar[i] = 0xFF;
     }
-    display_.setCursor(15, 3);
-    display_.print(bar);
+    PRINT_XY(15, 3, bar);
     DEBUG("Update fuel: %d%%\n", fuel);
   });
 }
@@ -254,21 +252,21 @@ void ForzaDashboard::updateLED(float load) {
   }
 
   LAZY_UPDATE(leds, {
-    display_.ledClear();
+    disp_.ledClear();
     for (int i = 0; i < leds; i++) {
-      display_.ledSet(i, RGB_COLOR_MAP[i]);
+      disp_.ledSet(i, RGB_COLOR_MAP[i]);
     }
-    display_.ledShow();
+    disp_.ledShow();
     DEBUG("Update LED: %d\n", leds);
   });
 }
 
 void ForzaDashboard::ledRedZone() {
   if (blinkShow_) {
-    display_.ledFill(RGB_COLOR_MAP[ARRAY_SIZE(RGB_COLOR_MAP) - 1]);  // same with the last LED
-    display_.ledShow();
+    disp_.ledFill(RGB_COLOR_MAP[ARRAY_SIZE(RGB_COLOR_MAP) - 1]);  // same with the last LED
+    disp_.ledShow();
   } else {
-    display_.ledOFF();
+    disp_.ledOFF();
   }
 }
 
@@ -286,8 +284,7 @@ void ForzaDashboard::updateRpm() {
     auto bar = BLINK("\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF",
                      "                    ");
     LAZY_UPDATE(bar, {
-      display_.setCursor(0, 0);
-      display_.print(bar);
+      PRINT_XY(0, 0, bar);
       ledRedZone();
     });
     return;
@@ -309,8 +306,7 @@ void ForzaDashboard::updateRpm() {
         bar[i] = 0xFF;
         bar[20 - 1 - i] = 0xFF;
       }
-      display_.setCursor(0, 0);
-      display_.print(bar);
+      PRINT_XY(0, 0, bar);
       DEBUG("Update rpm: %.2f%%\n", load);
     });
 
@@ -322,8 +318,7 @@ void ForzaDashboard::updateRpm() {
       for (int i = 0; i < seg; i++) {
         bar[i] = 0xFF;
       }
-      display_.setCursor(0, 0);
-      display_.print(bar);
+      PRINT_XY(0, 0, bar);
       DEBUG("Update rpm: %.2f%%\n", load);
     });
   }
@@ -333,29 +328,25 @@ void ForzaDashboard::dashboardInit() {
   if (!force_) {
     return;
   }
-  display_.ledOFF();
-  display_.setCursor(0, 0);
-  display_.print("                    ");
-  display_.setCursor(0, 1);
-  display_.print(isPro_ ? "C             POS:  " : "[        ]          ");
-  display_.setCursor(0, 2);
-  display_.print(isPro_ ? "L             LAP:  " : "          POS:      ");
-  display_.setCursor(0, 3);
-  display_.print(isPro_ ? "B             E    F" : "          LAP:      ");
+  disp_.ledOFF();
+  PRINT_XY(0, 0, "                    ");
+  PRINT_XY(0, 1, isPro_ ? "C             POS:  " : "[        ]          ");
+  PRINT_XY(0, 2, isPro_ ? "L             LAP:  " : "          POS:      ");
+  PRINT_XY(0, 3, isPro_ ? "B             E    F" : "          LAP:      ");
 }
 
 void ForzaDashboard::freshDisplay([[maybe_unused]] time_t time) {
   // mode/style change needs a full update
-  force_ = (display_.mode != DisplayMode::FORZA) || (isPro_ != state_.isPro);
-  display_.mode = DisplayMode::FORZA;
+  force_ = (disp_.mode != DisplayMode::FORZA) || (isPro_ != state_.isPro);
+  disp_.mode = DisplayMode::FORZA;
   isPro_ = state_.isPro;
 
   constexpr int PERIOD = 3;
   blinkShow_ = (blinkCounter_++ < PERIOD);
   blinkCounter_ %= (PERIOD * 2);
 
-  display_.backlightUpdate(force_, BACKLIGHT_DAY);
-  display_.ledBrightnesslUpdate(force_, RGB_LEVEL_DAY);
+  disp_.backlightUpdate(force_, BACKLIGHT_DAY);
+  disp_.ledBrightnesslUpdate(force_, RGB_LEVEL_DAY);
 
   dashboardInit();
   updateRpm();
