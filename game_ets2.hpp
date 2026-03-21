@@ -54,7 +54,7 @@ public:
   GameState getTelemetry() override;
   void freshDashboard(time_t time) override;
 
-  inline const char *name() override {
+  inline const char *name() const override {
     return "ETS2";
   }
 

@@ -71,7 +71,7 @@ public:
     return false;
   }
 
-  inline bool isOwnedBy(void *owner) {
+  inline bool isOwnedBy(void *owner) const {
     return owner_ == owner;
   }
 

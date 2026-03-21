@@ -27,7 +27,7 @@ enum GameState {
 class Game {
 public:
   virtual ~Game() {}
-  virtual const char *name();
+  virtual const char *name() const;
   virtual GameState getTelemetry();
   virtual void freshDashboard(time_t time);
 
