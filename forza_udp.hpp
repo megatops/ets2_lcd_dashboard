@@ -12,7 +12,7 @@
 
 #include <cstdint>
 
-constexpr const uint16_t FORZA_PORT = 8888;
+constexpr uint16_t FORZA_PORT = 8888;
 constexpr int FORZA_PPS = 40;  // 60 packets per second, slow down to 40fps.
 
 #define PACKED __attribute__((packed))

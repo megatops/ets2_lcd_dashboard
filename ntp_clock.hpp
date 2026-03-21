@@ -10,32 +10,31 @@
 #include <Arduino.h>
 #include <WiFiUdp.h>
 #include <NTPClient.h>
-#include "dashboard.hpp"
+#include "display.hpp"
 
 class NtpClock {
 public:
   NtpClock(Display &display, const char *server, long timeOffset, unsigned long updateInterval);
 
-  inline void connect() {
+  inline void start() {
     ntp_.begin();
   }
 
-  inline void disconnect() {
+  inline void stop() {
     ntp_.end();
   }
 
-  inline unsigned long getEpochTime() {
+  inline unsigned long time() {
     return ntp_.getEpochTime();
   }
 
   void initialSync();
   void tick();
-  void freshDisplay();
+  void freshDashboard();
 
 private:
   void clockInit();
-  void updateDate(time_t time);
-  void updateTime(time_t time);
+  void updateDateTime(time_t time);
   void noClock();
 
 private:
@@ -45,5 +44,5 @@ private:
 
   WiFiUDP udp_{};
   bool force_{};  // force update (bypass cache)
-  time_t lastUpdate_ = -1;
+  time_t lastUpdate_{ -1 };
 };

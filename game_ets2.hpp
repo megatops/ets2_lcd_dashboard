@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "dashboard.hpp"
+#include "game.hpp"
 
 #include <Arduino.h>
 #ifdef ESP8266
@@ -48,11 +48,15 @@ struct EtsState {
   int limit;    // 0 for no limit
 };
 
-class Ets2Dashboard : public Dashboard {
+class Ets2Game : public Game {
 public:
-  Ets2Dashboard(Display &display, const char *api);
-  GameState getGameData() override;
-  void freshDisplay(time_t time) override;
+  Ets2Game(Display &display, const char *api);
+  GameState getTelemetry() override;
+  void freshDashboard(time_t time) override;
+
+  inline const char *name() override {
+    return "ETS2";
+  }
 
 private:
   void dashboardInit();

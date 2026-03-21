@@ -12,12 +12,15 @@
 // Fuel ####...... 8888
 // +----+----+----+----
 
-#include "dashboard_ets2.hpp"
+#include "game_ets2.hpp"
 #include <ArduinoJson.h>
 #include <cfloat>
 #include <cstring>
 #include <TimeLib.h>
+#include "utils.hpp"
 
+static constexpr int ETS2_MAX_FAILURE = 10;    // max retries before idle
+static constexpr int ETS2_ACTIVE_DELAY = 500;  // 2Hz update
 static constexpr int HTTP_CONN_TIMEOUT = 100;  // timeout for connect
 static constexpr int HTTP_READ_TIMEOUT = 200;  // timeout for TCP read
 
@@ -26,13 +29,13 @@ static constexpr int JSON_FILTER_SIZE = 512;
 static constexpr int JSON_DOC_SIZE = 1024;
 
 // ISO8601: "0001-01-05T05:11:00Z"
-static int ToMinutes(const char *date) {
+static int toMinutes(const char *date) {
   struct tm tm {};
   strptime(date, "%Y-%m-%dT%H:%M:%SZ", &tm);
   return (tm.tm_yday * 24 + tm.tm_hour) * 60 + tm.tm_min + (tm.tm_sec < 30 ? 0 : 1);
 }
 
-static bool IsEV(const char *model) {
+static bool isEV(const char *model) {
   for (auto m = &EV_TRUCKS[0]; *m != nullptr; m++) {
     if (strcmp(model, *m) == 0) {
       return true;
@@ -116,12 +119,12 @@ static DeserializationOption::Filter &ets2TelemetryFilter() {
   return filter;
 }
 
-Ets2Dashboard::Ets2Dashboard(Display &display, const char *api)
-  : Dashboard(display), api_(String(api)) {
+Ets2Game::Ets2Game(Display &display, const char *api)
+  : Game(display, ETS2_MAX_FAILURE, ETS2_ACTIVE_DELAY), api_(String(api)) {
   http_.setReuse(true);
 }
 
-GameState Ets2Dashboard::ets2TelemetryParse(String &json) {
+GameState Ets2Game::ets2TelemetryParse(String &json) {
   StaticJsonDocument<JSON_DOC_SIZE> ets;
   auto err = deserializeJson(ets, json, ets2TelemetryFilter());
   if (err) {
@@ -147,7 +150,7 @@ GameState Ets2Dashboard::ets2TelemetryParse(String &json) {
   // previous state on temporary failure.
   JsonObject truck = ets["truck"];
   if (!truck.isNull()) {
-    state_.isEV = IsEV(truck["model"]);
+    state_.isEV = isEV(truck["model"]);
     state_.on = truck["electricOn"];
     state_.speed = abs(round(KmConv((double)truck["speed"])));
     state_.cruise = truck["cruiseControlOn"] ? round(KmConv(truck["cruiseControlSpeed"])) : 0;
@@ -181,14 +184,14 @@ GameState Ets2Dashboard::ets2TelemetryParse(String &json) {
   JsonObject nav = ets["navigation"];
   if (!nav.isNull()) {
     state_.etaDist = round(KmConv((double)nav["estimatedDistance"] / 1000));
-    state_.etaTime = ToMinutes(nav["estimatedTime"]);
+    state_.etaTime = toMinutes(nav["estimatedTime"]);
     state_.limit = round(KmConv(nav["speedLimit"]));
   }
 
   return GameState::DRIVING;
 }
 
-GameState Ets2Dashboard::getGameData() {
+GameState Ets2Game::getTelemetry() {
   GameState game = GameState::SERVER_DOWN;
 
   http_.begin(client_, api_.c_str());
@@ -209,7 +212,7 @@ GameState Ets2Dashboard::getGameData() {
   return game;
 }
 
-void Ets2Dashboard::updateSpeed() {
+void Ets2Game::updateSpeed() {
   auto speed = state_.speed;
   LIMIT(speed, 199);
 
@@ -219,7 +222,7 @@ void Ets2Dashboard::updateSpeed() {
   });
 }
 
-void Ets2Dashboard::updateEtaDist() {
+void Ets2Game::updateEtaDist() {
   auto etaDist = state_.etaDist;
   LIMIT(etaDist, 9999);
 
@@ -234,17 +237,17 @@ void Ets2Dashboard::updateEtaDist() {
   });
 }
 
-void Ets2Dashboard::updateEtaTime() {
+void Ets2Game::updateEtaTime() {
   auto etaTime = state_.etaTime;
   LIMIT(etaTime, 99 * 60 + 59);
 
   LAZY_UPDATE(etaTime, {
-    PRINTF_XY(15, 0, "%02d:%02d", etaTime / 60, etaTime % 60);
+    dispPrintf(15, 0, "%02d:%02d", etaTime / 60, etaTime % 60);
     DEBUG("Update ETA time: %d\n", etaTime);
   });
 }
 
-void Ets2Dashboard::updateCruise() {
+void Ets2Game::updateCruise() {
   auto cruise = state_.cruise;
   LIMIT(cruise, 999);
 
@@ -259,7 +262,7 @@ void Ets2Dashboard::updateCruise() {
   });
 }
 
-void Ets2Dashboard::updateLimit() {
+void Ets2Game::updateLimit() {
   bool speeding = (state_.limit > 0) && (state_.speed > state_.limit);
   auto limit = state_.limit;
   LIMIT(limit, 999);
@@ -276,12 +279,10 @@ void Ets2Dashboard::updateLimit() {
 
   // blink the label as speeding warning
   auto label = BLINK_IF(speeding, "Limit", "     ");
-  LAZY_UPDATE(label, {
-    PRINT_XY(15, 1, label);
-  });
+  LAZY_UPDATE(label, dispPrint(15, 1, label));
 }
 
-void Ets2Dashboard::updateFuel() {
+void Ets2Game::updateFuel() {
   auto fuel = state_.fuel, fuelDist = state_.fuelDist;
   LIMIT(fuel, 100);
   LIMIT(fuelDist, 9999);
@@ -293,7 +294,7 @@ void Ets2Dashboard::updateFuel() {
       }
       fuelDist = cached_;  // keep the old display
     }
-    PRINTF_XY(16, 3, "%4d", fuelDist);
+    dispPrintf(16, 3, "%4d", fuelDist);
     DEBUG("Update fuel distance: %d\n", fuelDist);
   });
 
@@ -303,36 +304,26 @@ void Ets2Dashboard::updateFuel() {
     for (int i = 0; i < seg; i++) {
       bar[i] = 0xFF;
     }
-    PRINT_XY(5, 3, bar);
+    dispPrint(5, 3, bar);
     DEBUG("Update fuel: %d%%\n", fuel);
   });
 
   // blink the label as fuel warning
   auto label = BLINK_IF(state_.fuelWarn, state_.isEV ? "Batt" : "Fuel", "    ");
-  LAZY_UPDATE(label, {
-    PRINT_XY(0, 3, label);
-  });
+  LAZY_UPDATE(label, dispPrint(0, 3, label));
 }
 
-void Ets2Dashboard::updateClock(time_t time) {
+void Ets2Game::updateClock(time_t time) {
   int h = CLOCK_12H ? hourFormat12(time) : hour(time),
       m = minute(time);
-
-  LAZY_UPDATE(h, {
-    PRINTF_XY(0, 0, "%02d", h);
-  });
-
-  LAZY_UPDATE(m, {
-    PRINTF_XY(3, 0, "%02d", m);
-  });
+  LAZY_UPDATE(h, dispPrintf(0, 0, "%02d", h));
+  LAZY_UPDATE(m, dispPrintf(3, 0, "%02d", m));
 
   auto label = BLINK_IF(CLOCK_BLINK, ":", " ");
-  LAZY_UPDATE(label, {
-    PRINT_XY(2, 0, label);
-  });
+  LAZY_UPDATE(label, dispPrint(2, 0, label));
 }
 
-void Ets2Dashboard::updateLEDs() {
+void Ets2Game::updateLEDs() {
   bool changed = false;  // need to fresh LED bar
 
   // special: blinkers
@@ -393,21 +384,20 @@ void Ets2Dashboard::updateLEDs() {
   }
 }
 
-void Ets2Dashboard::dashboardInit() {
+void Ets2Game::dashboardInit() {
   if (!force_) {
     return;
   }
   disp_.ledOFF();
-  PRINTF_XY(0, 0, "%s \x7e     %s   :  ", CLOCK_ENABLE ? "     " : "Navi:", SHOW_MILE ? "mi" : "km");
-  PRINT_XY(0, 1, "Cruis               ");
-  PRINT_XY(0, 2, "[   ]          [   ]");
-  PRINT_XY(0, 3, "                    ");
+  dispPrintf(0, 0, "%s \x7e     %s   :  ", CLOCK_ENABLE ? "     " : "Navi:", SHOW_MILE ? "mi" : "km");
+  dispPrint(0, 1, "Cruis               ");
+  dispPrint(0, 2, "[   ]          [   ]");
+  dispPrint(0, 3, "                    ");
 }
 
-void Ets2Dashboard::freshDisplay(time_t time) {
-  // mode change needs a full update
-  force_ = (disp_.mode != DisplayMode::ETS2);
-  disp_.mode = DisplayMode::ETS2;
+void Ets2Game::freshDashboard(time_t time) {
+  // owner change needs a full update
+  force_ = disp_.setOwner(this);
   blinkShow_ = !blinkShow_;  // 1Hz @ 2FPS
 
   // no backlight when engine off, dim when headlight on

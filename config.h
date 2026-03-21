@@ -36,7 +36,7 @@ constexpr int BACKLIGHT_NIGHT = 128;  // when headlight on, dimmer
 
 // RGB bar brightness level
 constexpr uint8_t RGB_LEVEL_DAY = 2;
-constexpr uint8_t RGB_LEVEL_NIGHT = 2;  // don't set below 2, or it can only display 2^3 colors, which cannot display orange
+constexpr uint8_t RGB_LEVEL_NIGHT = 2;
 constexpr uint8_t RGB_LEVEL_OFF = 0;
 
 // Backlight levels for clock
@@ -105,7 +105,7 @@ struct RgbColor {
 // ETS2: LED indicator colors
 constexpr RgbColor
   LED_ALERT{ 128, 0, 0 },   // red, half the brightness
-  LED_WARN{ 255, 128, 0 },  // orange
+  LED_WARN{ 128, 128, 0 },  // yellow
   LED_NOTICE{ 0, 0, 255 },  // blue (for high beam)
   LED_INFO{ 0, 128, 0 },    // green, half the brightness
   LED_OFF{ 0, 0, 0 };

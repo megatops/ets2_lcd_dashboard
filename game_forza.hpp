@@ -9,7 +9,7 @@
 
 #include <Arduino.h>
 #include <WiFiUdp.h>
-#include "dashboard.hpp"
+#include "game.hpp"
 #include "forza_udp.hpp"
 
 struct ForzaState {
@@ -30,13 +30,17 @@ struct ForzaState {
   int currLap;  // msec
 };
 
-class ForzaDashboard : public Dashboard {
+class ForzaGame : public Game {
 public:
-  ForzaDashboard(Display &display, uint16_t port);
-  GameState getGameData() override;
-  void freshDisplay(time_t time) override;
+  ForzaGame(Display &display, uint16_t port);
+  GameState getTelemetry() override;
+  void freshDashboard(time_t time) override;
 
-  inline void listen() {
+  inline const char *name() override {
+    return "Forza";
+  }
+
+  inline void start() {
     Serial.printf("Listening Forza telemetry on: %u\n", port_);
     udp_.begin(port_);
   }
@@ -63,7 +67,7 @@ private:
   GameState forzaTelemetryParse(size_t len);
 
 private:
-  uint16_t port_;
+  uint16_t port_{};
   WiFiUDP udp_{};
   ForzaState state_{};
   bool isPro_{};    // performance dashboard

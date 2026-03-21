@@ -13,13 +13,6 @@
 #include "large_digit.hpp"
 #include "config.h"
 
-enum DisplayMode {
-  UNKNOWN,
-  ETS2,
-  FORZA,
-  CLOCK,
-};
-
 // Facade for the entire display complex
 class Display : public Print {
 public:
@@ -69,8 +62,18 @@ public:
     ledShow();
   }
 
-public:
-  DisplayMode mode = DisplayMode::UNKNOWN;
+  // return true on owner change
+  inline bool setOwner(void *owner) {
+    if (owner_ != owner) {
+      owner_ = owner;
+      return true;
+    }
+    return false;
+  }
+
+  inline bool isOwnedBy(void *owner) {
+    return owner_ == owner;
+  }
 
 private:
   int lcdSda_{};
@@ -83,4 +86,6 @@ private:
   LiquidCrystal_I2C lcd_;
   LargeDigit digit_;
   Adafruit_NeoPixel rgb_;
+
+  void *owner_{};
 };

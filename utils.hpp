@@ -9,6 +9,15 @@
 
 #include "config.h"
 
+constexpr bool DEBUG_ENABLE = false;  // verbose serial debug info
+
+#define DEBUG(...) \
+  do { \
+    if (DEBUG_ENABLE) { \
+      Serial.printf(__VA_ARGS__); \
+    } \
+  } while (0)
+
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))
 #endif
@@ -24,13 +33,16 @@
     } \
   } while (0)
 
-constexpr bool DEBUG_ENABLE = false;  // verbose serial debug info
-
-#define DEBUG(...) \
+#define dispPrintf(x, y, fmt, ...) \
   do { \
-    if (DEBUG_ENABLE) { \
-      Serial.printf(__VA_ARGS__); \
-    } \
+    disp_.setCursor(x, y); \
+    disp_.printf(fmt, ##__VA_ARGS__); \
+  } while (0)
+
+#define dispPrint(x, y, str) \
+  do { \
+    disp_.setCursor(x, y); \
+    disp_.print(str); \
   } while (0)
 
 static inline double KmConv(double km) {
