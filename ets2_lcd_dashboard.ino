@@ -13,12 +13,12 @@
 
 #include "config.h"
 #include "board.h"
-#include "utils.hpp"
-#include "display.hpp"
-#include "ntp_clock.hpp"
-#include "game.hpp"
-#include "game_ets2.hpp"
-#include "game_forza.hpp"
+#include "src/clock/ntp_clock.hpp"
+#include "src/display/display.hpp"
+#include "src/game/game_ets2.hpp"
+#include "src/game/game_forza.hpp"
+#include "src/game/game.hpp"
+#include "src/utils.hpp"
 
 static constexpr int NTP_UPDATE = 60 * 60 * 1000;  // interval to sync clock with NTP
 
@@ -62,7 +62,7 @@ void setup() {
 
   if (CLOCK_ENABLE) {
     ntpClock.initialSync();
-    ntpClock.freshDashboard();
+    ntpClock.freshDisplay();
   }
 }
 

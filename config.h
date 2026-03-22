@@ -9,6 +9,9 @@
 
 #include <cstdint>
 #include "board.h"
+#include "src/display/display.hpp"
+
+constexpr bool DEBUG_ENABLE = false;  // verbose serial debug info
 
 // Wi-Fi and API server
 constexpr const char *SSID = "YOUR WIFI SSID";
@@ -95,12 +98,6 @@ enum LedSlot {
   SLOT_MAX,
 };
 static_assert(LedSlot::SLOT_MAX <= RGB_LED_NUM, "Too many LED slots");
-
-struct RgbColor {
-  uint8_t r;
-  uint8_t g;
-  uint8_t b;
-};
 
 // ETS2: LED indicator colors
 constexpr RgbColor

@@ -8,10 +8,9 @@
 #pragma once
 
 #include <SoftwareTimer.h>
-#include "config.h"
-#include "display.hpp"
-#include "ntp_clock.hpp"
-#include "utils.hpp"
+#include "../../config.h"
+#include "../clock/ntp_clock.hpp"
+#include "../display/display.hpp"
 
 enum GameState {
   SERVER_DOWN,
@@ -24,12 +23,12 @@ enum GameState {
 #define BLINK_IF(cond, msg1, msg2) ((!(cond) || blinkShow_) ? (msg1) : (msg2))
 #define BLINK(msg1, msg2) (blinkShow_ ? (msg1) : (msg2))
 
-class Game {
+class Game : public Dashboard {
 public:
   virtual ~Game() {}
   virtual const char *name() const;
   virtual GameState getTelemetry();
-  virtual void freshDashboard(time_t time);
+  virtual void freshDisplay(time_t time);
 
 public:
   const int MAX_FAILURE;   // max retries before idle
@@ -37,13 +36,10 @@ public:
 
 protected:
   explicit Game(Display &display, int maxFailure, int activeDelay)
-    : MAX_FAILURE(maxFailure), ACTIVE_DELAY(activeDelay), disp_(display) {}
+    : Dashboard(display), MAX_FAILURE(maxFailure), ACTIVE_DELAY(activeDelay) {}
 
 protected:
-  Display &disp_;
   bool blinkShow_{};    // synchronize the blinks
-  int blinkCounter_{};  // count blink duration
-  bool force_{};        // force update (bypass cache)
 };
 
 class Controller {

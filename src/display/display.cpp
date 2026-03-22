@@ -6,8 +6,7 @@
 // See the COPYING file in the top-level directory.
 
 #include "display.hpp"
-#include "utils.hpp"
-#include "board.h"
+#include "../utils.hpp"
 
 Display::Display(int lcdSDA, int lcdSCL, int lcdFreq, int lcdPWM, int rgbLedPin, int lcdAddr)
   : lcdSda_(lcdSDA),

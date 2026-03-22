@@ -13,9 +13,9 @@
 // +----+----+----+----
 
 #include "ntp_clock.hpp"
-#include "config.h"
 #include <TimeLib.h>
-#include "utils.hpp"
+#include "../../config.h"
+#include "../utils.hpp"
 
 #ifdef ESP8266
 #include <ESP8266WiFi.h>
@@ -24,7 +24,7 @@
 #endif
 
 NtpClock::NtpClock(Display& display, const char* server, long timeOffset, unsigned long updateInterval)
-  : disp_(display), ntp_(NTPClient(udp_, server, timeOffset, updateInterval)) {}
+  : Dashboard(display), ntp_(NTPClient(udp_, server, timeOffset, updateInterval)) {}
 
 void NtpClock::initialSync() {
   Serial.printf("NTP syncing with %s .", server_.c_str());
@@ -48,7 +48,7 @@ void NtpClock::tick() {
     Serial.printf("NTP sync success: %s.\n", ntp_.getFormattedTime().c_str());
   }
 
-  freshDashboard();
+  freshDisplay();
 }
 
 void NtpClock::updateDateTime(time_t time) {
@@ -89,7 +89,7 @@ void NtpClock::noClock() {
   dispPrint(0, 3, "                    ");
 }
 
-void NtpClock::freshDashboard() {
+void NtpClock::freshDisplay() {
   // owner change needs a full update
   force_ = disp_.setOwner(this);
 

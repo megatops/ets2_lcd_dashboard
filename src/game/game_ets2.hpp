@@ -52,28 +52,24 @@ class Ets2Game : public Game {
 public:
   Ets2Game(Display &display, const char *api);
   GameState getTelemetry() override;
-  void freshDashboard(time_t time) override;
+  void freshDisplay(time_t time) override;
 
   inline const char *name() const override {
     return "ETS2";
   }
 
 private:
+  GameState ets2TelemetryParse(String &json);
+
   void dashboardInit();
   void updateSpeed();
-  void updateEtaDist();
-  void updateEtaTime();
-  void updateCruise();
-  void updateLimit();
+  void updateEta();
   void updateFuel();
   void updateLEDs();
   void updateClock(time_t time);
 
-  GameState ets2TelemetryParse(String &json);
-
 private:
   String api_;
-
   HTTPClient http_{};
   WiFiClient client_{};
   EtsState state_{};

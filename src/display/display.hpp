@@ -9,9 +9,15 @@
 
 #include <Adafruit_NeoPixel.h>
 #include <LiquidCrystal_I2C.h>
-#include "Print.h"
-#include "large_digit.hpp"
-#include "config.h"
+#include <Print.h>
+#include "../../board.h"
+#include "../display/large_digit.hpp"
+
+struct RgbColor {
+  uint8_t r;
+  uint8_t g;
+  uint8_t b;
+};
 
 // Facade for the entire display complex
 class Display : public Print {
@@ -89,3 +95,36 @@ private:
 
   void *owner_{};
 };
+
+class Dashboard {
+public:
+  virtual ~Dashboard() {}
+
+protected:
+  Dashboard(Display &display)
+    : disp_(display) {}
+
+  void dispPrint(int x, int y, const char *str) {
+    disp_.setCursor(x, y);
+    disp_.print(str);
+  }
+
+protected:
+  Display &disp_;
+  bool force_{};  // force update (bypass cache)
+};
+
+#define dispPrintf(x, y, fmt, ...) \
+  do { \
+    disp_.setCursor(x, y); \
+    disp_.printf(fmt, ##__VA_ARGS__); \
+  } while (0)
+
+#define LAZY_UPDATE(value, code) \
+  do { \
+    static typeof(value) cached_; \
+    if (force_ || (value) != cached_) { \
+      code; \
+      cached_ = (value); \
+    } \
+  } while (0)

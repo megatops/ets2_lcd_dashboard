@@ -8,11 +8,11 @@
 #pragma once
 
 #include <Arduino.h>
-#include <WiFiUdp.h>
 #include <NTPClient.h>
-#include "display.hpp"
+#include <WiFiUdp.h>
+#include "../display/display.hpp"
 
-class NtpClock {
+class NtpClock : public Dashboard {
 public:
   NtpClock(Display &display, const char *server, long timeOffset, unsigned long updateInterval);
 
@@ -30,7 +30,7 @@ public:
 
   void initialSync();
   void tick();
-  void freshDashboard();
+  void freshDisplay();
 
 private:
   void clockInit();
@@ -38,11 +38,9 @@ private:
   void noClock();
 
 private:
-  Display &disp_;
   String server_;
   NTPClient ntp_;
-
   WiFiUDP udp_{};
-  bool force_{};  // force update (bypass cache)
+
   time_t lastUpdate_{ -1 };
 };

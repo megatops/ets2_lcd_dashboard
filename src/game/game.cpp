@@ -6,7 +6,7 @@
 // See the COPYING file in the top-level directory.
 
 #include "game.hpp"
-#include "utils.hpp"
+#include "../utils.hpp"
 
 static constexpr int IDLE_DELAY = 5000;  // API query interval when idle
 
@@ -85,9 +85,9 @@ void Controller::realTimerCb() {
   updateState();
 
   if (driving_) {
-    active_->freshDashboard(clock_.time());
+    active_->freshDisplay(clock_.time());
   } else if (!disp_.isOwnedBy(&clock_)) {
-    clock_.freshDashboard();  // need to switch to clock mode (not driving, or inactive)
+    clock_.freshDisplay();  // need to switch to clock mode (not driving, or inactive)
   }
   // otherwise let clock_tick() to update the clock disp
 }

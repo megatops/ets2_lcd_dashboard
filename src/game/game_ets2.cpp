@@ -17,7 +17,7 @@
 #include <cfloat>
 #include <cstring>
 #include <TimeLib.h>
-#include "utils.hpp"
+#include "../utils.hpp"
 
 static constexpr int ETS2_MAX_FAILURE = 10;    // max retries before idle
 static constexpr int ETS2_ACTIVE_DELAY = 500;  // 2Hz update
@@ -142,7 +142,7 @@ GameState Ets2Game::ets2TelemetryParse(String &json) {
     return GameState::NOT_START;
   }
   if (CLOCK_ENABLE && game["paused"]) {
-    Serial.println("ETS2 is paused.");
+    DEBUG("ETS2 is paused.\n");
     return GameState::READY;
   }
 
@@ -212,20 +212,8 @@ GameState Ets2Game::getTelemetry() {
   return game;
 }
 
-void Ets2Game::updateSpeed() {
-  auto speed = state_.speed;
-  LIMIT(speed, 199);
-
-  LAZY_UPDATE(speed, {
-    disp_.printLarge(5, 1, speed, 3, false);
-    DEBUG("Update speed: %d\n", speed);
-  });
-}
-
-void Ets2Game::updateEtaDist() {
-  auto etaDist = state_.etaDist;
-  LIMIT(etaDist, 9999);
-
+void Ets2Game::updateEta() {
+  auto etaDist = min(state_.etaDist, 9999);
   LAZY_UPDATE(etaDist, {
     disp_.setCursor(8, 0);
     if (etaDist >= 1000) {
@@ -235,22 +223,22 @@ void Ets2Game::updateEtaDist() {
     }
     DEBUG("Update ETA distance: %d\n", etaDist);
   });
-}
 
-void Ets2Game::updateEtaTime() {
-  auto etaTime = state_.etaTime;
-  LIMIT(etaTime, 99 * 60 + 59);
-
+  auto etaTime = min(state_.etaTime, 99 * 60 + 59);
   LAZY_UPDATE(etaTime, {
     dispPrintf(15, 0, "%02d:%02d", etaTime / 60, etaTime % 60);
     DEBUG("Update ETA time: %d\n", etaTime);
   });
 }
 
-void Ets2Game::updateCruise() {
-  auto cruise = state_.cruise;
-  LIMIT(cruise, 999);
+void Ets2Game::updateSpeed() {
+  auto speed = min(state_.speed, 199);
+  LAZY_UPDATE(speed, {
+    disp_.printLarge(5, 1, speed, 3, false);
+    DEBUG("Update speed: %d\n", speed);
+  });
 
+  auto cruise = min(state_.cruise, 999);
   LAZY_UPDATE(cruise, {
     disp_.setCursor(1, 2);
     if (cruise > 0) {
@@ -260,13 +248,8 @@ void Ets2Game::updateCruise() {
     }
     DEBUG("Update cruise: %d\n", cruise);
   });
-}
 
-void Ets2Game::updateLimit() {
-  bool speeding = (state_.limit > 0) && (state_.speed > state_.limit);
-  auto limit = state_.limit;
-  LIMIT(limit, 999);
-
+  auto limit = min(state_.limit, 999);
   LAZY_UPDATE(limit, {
     disp_.setCursor(16, 2);
     if (limit > 0) {
@@ -278,26 +261,19 @@ void Ets2Game::updateLimit() {
   });
 
   // blink the label as speeding warning
+  bool speeding = (state_.limit > 0) && (state_.speed > state_.limit);
   auto label = BLINK_IF(speeding, "Limit", "     ");
   LAZY_UPDATE(label, dispPrint(15, 1, label));
 }
 
 void Ets2Game::updateFuel() {
-  auto fuel = state_.fuel, fuelDist = state_.fuelDist;
-  LIMIT(fuel, 100);
-  LIMIT(fuelDist, 9999);
-
+  auto fuelDist = min(state_.fuelDist, 9999);
   LAZY_UPDATE(fuelDist, {
-    if (fuelDist < 0) {
-      if (!force_) {
-        break;  // no need to update
-      }
-      fuelDist = cached_;  // keep the old display
-    }
     dispPrintf(16, 3, "%4d", fuelDist);
     DEBUG("Update fuel distance: %d\n", fuelDist);
   });
 
+  auto fuel = min(state_.fuel, 100);
   int seg = round(fuel / (100.0 / 10));
   LAZY_UPDATE(seg, {
     char bar[] = "\xA5\xA5\xA5\xA5\xA5\xA5\xA5\xA5\xA5\xA5";
@@ -395,7 +371,7 @@ void Ets2Game::dashboardInit() {
   dispPrint(0, 3, "                    ");
 }
 
-void Ets2Game::freshDashboard(time_t time) {
+void Ets2Game::freshDisplay(time_t time) {
   // owner change needs a full update
   force_ = disp_.setOwner(this);
   blinkShow_ = !blinkShow_;  // 1Hz @ 2FPS
@@ -410,11 +386,8 @@ void Ets2Game::freshDashboard(time_t time) {
   if (CLOCK_ENABLE) {
     updateClock(time);
   }
-  updateLimit();
   updateSpeed();
-  updateCruise();
-  updateEtaDist();
-  updateEtaTime();
+  updateEta();
   updateFuel();
 
   // dynamic RGB brightness change needs a full update (workaround for NeoPixel limitation)

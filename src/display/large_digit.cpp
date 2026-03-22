@@ -9,7 +9,7 @@
 // ref: https://coeleveld.com/bigfont/
 
 #include "large_digit.hpp"
-#include "utils.hpp"
+#include "../utils.hpp"
 
 LargeDigit::LargeDigit(LiquidCrystal_I2C &lcd)
   : lcd_(lcd) {}

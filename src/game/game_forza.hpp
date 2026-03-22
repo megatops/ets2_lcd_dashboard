@@ -9,8 +9,8 @@
 
 #include <Arduino.h>
 #include <WiFiUdp.h>
-#include "game.hpp"
 #include "forza_udp.hpp"
+#include "game.hpp"
 
 struct ForzaState {
   // car status
@@ -34,7 +34,7 @@ class ForzaGame : public Game {
 public:
   ForzaGame(Display &display, uint16_t port);
   GameState getTelemetry() override;
-  void freshDashboard(time_t time) override;
+  void freshDisplay(time_t time) override;
 
   inline const char *name() const override {
     return "Forza";
@@ -51,26 +51,26 @@ public:
 
 private:
   void dashboardInit();
-  void updateSpeed();
-  void updateGear();
-  void updateBestTime();
-  void updateLastTime();
+  void updateSpeedGear();
+  void updateLapTime();
   void updateCurrTime();
-  void updateLap();
-  void updatePos();
+  void updateLapPos();
   void updateFuel();
   void updateRpm();
 
   void printN(int x, int y);
-  void updateLED(float load);
+  void ledProgress(float load);
   void ledRedZone();
   GameState forzaTelemetryParse(size_t len);
 
 private:
   uint16_t port_{};
   WiFiUDP udp_{};
+
   ForzaState state_{};
   bool isPro_{};    // performance dashboard
   bool inRed_{};    // rpm currently in red zone
-  ForzaPkt pkt_{};  //packet buffer
+
+  int frameCnt_{};  // count blink duration
+  ForzaPkt pkt_{};  // packet buffer
 };
