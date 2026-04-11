@@ -26,6 +26,8 @@ public:
   virtual const char *name() const;
   virtual GameState getTelemetry();
   virtual void freshDisplay(time_t time);
+  virtual void start() {}
+  virtual void stop() {}
 
 public:
   const int MAX_FAILURE;   // max retries before idle
@@ -42,6 +44,18 @@ public:
 
   inline void tick() {
     timer_.tick();
+  }
+
+  inline void startGames() {
+    for (size_t i = 0; i < gameCount_; i++) {
+      games_[i]->start();
+    }
+  }
+
+  inline void stopGames() {
+    for (size_t i = 0; i < gameCount_; i++) {
+      games_[i]->stop();
+    }
   }
 
 private:

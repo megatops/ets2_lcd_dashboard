@@ -12,8 +12,6 @@
 #include <TimeLib.h>
 #include "../utils.hpp"
 
-static constexpr int ETS2_MAX_FAILURE = 10;    // max retries before idle
-static constexpr int ETS2_ACTIVE_DELAY = 500;  // 2Hz update
 static constexpr int HTTP_CONN_TIMEOUT = 100;  // timeout for connect
 static constexpr int HTTP_READ_TIMEOUT = 200;  // timeout for TCP read
 
@@ -113,7 +111,7 @@ static DeserializationOption::Filter &ets2TelemetryFilter() {
 }
 
 Ets2Game::Ets2Game(TruckDashboard &dash, const char *api)
-  : Game(ETS2_MAX_FAILURE, ETS2_ACTIVE_DELAY), dash_(dash), api_(String(api)) {
+  : Game(5 * TruckDashboard::FPS, 1000 / TruckDashboard::FPS), dash_(dash), api_(String(api)) {
   http_.setReuse(true);
 }
 

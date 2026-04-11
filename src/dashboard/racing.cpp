@@ -37,6 +37,18 @@ void RacingDashboard::printN(int x, int y) {
   disp_.write(0);
 }
 
+void RacingDashboard::printR(int x, int y) {
+  // use the strokes defined in LargeDigit
+  disp_.setCursor(x, y);
+  disp_.write(1);
+  disp_.write(7);
+  disp_.write(0);
+  disp_.setCursor(x, y + 1);
+  disp_.write(1);
+  disp_.write(' ');
+  disp_.write(' ');
+}
+
 void RacingDashboard::updateSpeedGear(const RacingState *state) {
   auto speed = min(state->speed, 999);
   LAZY_UPDATE(speed, {
@@ -54,8 +66,10 @@ void RacingDashboard::updateSpeedGear(const RacingState *state) {
     int y = isPro_ ? 1 : 2;
     if (gear > 0) {
       disp_.printLarge(x, y, gear, 1, false);
-    } else {
+    } else if (gear == 0) {
       printN(x, y);
+    } else {
+      printR(x, y);
     }
     DEBUG("Update gear: %d\n", gear);
   });
@@ -183,11 +197,18 @@ void RacingDashboard::ledRedZone() {
 void RacingDashboard::updateRpm(const RacingState *state) {
   auto rpm = state->rpm, rpmIdle = state->rpmIdle, rpmMax = state->rpmMax;
 
+  if (rpmMax == 0) {
+    // no valid rpm data, just set to 0
+    rpm = 0;
+    rpmIdle = 0;
+    rpmMax = 10000;
+  }
+
   // calculate engine load
   rpm = (rpm < rpmIdle) ? rpmIdle : rpm;
   float load = (rpm - rpmIdle) * 100.0 / (rpmMax - rpmIdle);
 
-  if ((load >= FORZA_RED_ZONE) || (inRed_ && (load >= FORZA_SHIFT_ZONE))) {
+  if ((load >= RACING_RED_ZONE) || (inRed_ && (load >= RACING_SHIFT_ZONE))) {
     // in red zone, just blink the bar
     force_ |= !inRed_;
     inRed_ = true;
@@ -204,7 +225,7 @@ void RacingDashboard::updateRpm(const RacingState *state) {
   inRed_ = false;
   ledProgress(load);
 
-  int pct = min(static_cast<int>(round(load * 100.0 / FORZA_SHIFT_ZONE)), 100);
+  int pct = min(static_cast<int>(round(load * 100.0 / RACING_SHIFT_ZONE)), 100);
   if (isPro_) {
     // Converging rpm bar [## -> .. <- ##]
     int seg = round(pct / 10.0);

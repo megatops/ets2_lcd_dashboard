@@ -5,17 +5,16 @@
 // This work is licensed under the terms of the GNU GPL, version 2 or later.
 // See the COPYING file in the top-level directory.
 //
-// Refer: https://support.forzamotorsport.net/hc/en-us/articles/21742934024211-Forza-Motorsport-Data-Out-Documentation
-// Refer: https://github.com/geeooff/forza-data-web
+// Refer:
+// - https://support.forzamotorsport.net/hc/en-us/articles/21742934024211-Forza-Motorsport-Data-Out-Documentation
+// - https://github.com/geeooff/forza-data-web
 
 #pragma once
 
 #include <cstdint>
+#include "../utils.hpp"
 
-constexpr uint16_t FORZA_PORT = 8888;
-constexpr int FORZA_PPS = 40;  // 60 packets per second, slow down to 40fps.
-
-#define PACKED __attribute__((packed))
+constexpr uint16_t FORZA_PORT = 8888;  // at 60Hz
 
 struct PACKED ForzaSledData {
   // = 1 when race is on. = 0 when in menus/race stopped

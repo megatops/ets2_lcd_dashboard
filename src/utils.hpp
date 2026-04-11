@@ -32,6 +32,8 @@
     } \
   } while (0)
 
+#define PACKED __attribute__((packed))
+
 static inline double KmConv(double km) {
   return SHOW_MILE ? (km / 1.61) : km;
 }

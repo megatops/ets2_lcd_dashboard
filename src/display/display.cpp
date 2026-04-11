@@ -38,9 +38,9 @@ void Display::start() {
 
   // display initial info
   lcd_.setCursor(0, 1);
-  lcd_.print("ETS2 Forza Dashboard");
-  lcd_.setCursor(1, 2);
-  lcd_.print("Setting up network");
+  lcd_.print("    LCD Dashboard   ");
+  lcd_.setCursor(0, 2);
+  lcd_.print(" ETS2 \xA5 Forza \xA5 DiRT");
 }
 
 void Display::backlightUpdate(bool force, int level) {

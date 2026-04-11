@@ -48,8 +48,8 @@ void ClockDashboard::noClock() {
   }
   disp_.ledOFF();
   dispPrint(0, 0, "                    ");
-  dispPrint(0, 1, "ETS2 Forza Dashboard");
-  dispPrint(0, 2, "Waiting for game ...");
+  dispPrint(0, 1, "    LCD Dashboard   ");
+  dispPrint(0, 2, " ETS2 \xA5 Forza \xA5 DiRT");
   dispPrint(0, 3, "                    ");
 }
 

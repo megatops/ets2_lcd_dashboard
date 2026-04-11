@@ -8,11 +8,8 @@
 #include "forza.hpp"
 #include "../utils.hpp"
 
-static constexpr int FORZA_MAX_FAILURE = 5 * FORZA_PPS;
-static constexpr int FORZA_ACTIVE_DELAY = 1000 / FORZA_PPS;
-
 ForzaGame::ForzaGame(RacingDashboard &dash, uint16_t port)
-  : Game(FORZA_MAX_FAILURE, FORZA_ACTIVE_DELAY), dash_(dash), port_(port) {}
+  : Game(5 * RacingDashboard::FPS, 1000 / RacingDashboard::FPS), dash_(dash), port_(port) {}
 
 GameState ForzaGame::forzaTelemetryParse(size_t len) {
   const ForzaSledData *sled{};
@@ -69,13 +66,13 @@ GameState ForzaGame::getTelemetry() {
   }
 
   if (!IsForzaPacket(len)) {
-    Serial.printf("Invalid Forza packet of size %d from %s\n", len, udp_.remoteIP().toString().c_str());
+    Serial.printf("Invalid %s packet of size %d from %s\n", name(), len, udp_.remoteIP().toString().c_str());
     return GameState::SERVER_DOWN;
   }
 
   int n = udp_.read(pkt_.bytes, sizeof(pkt_));
   if (n != len) {
-    Serial.printf("Failed to read Forza packet: %d of %d\n", n, len);
+    Serial.printf("Failed to read %s packet: %d of %d\n", name(), n, len);
     return GameState::SERVER_DOWN;
   }
 

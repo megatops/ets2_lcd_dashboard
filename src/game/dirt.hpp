@@ -9,18 +9,18 @@
 
 #include <Arduino.h>
 #include <WiFiUdp.h>
-#include "forza_udp.hpp"
+#include "dirt_udp.hpp"
 #include "game.hpp"
 #include "../dashboard/racing.hpp"
 
-class ForzaGame : public Game {
+class DirtGame : public Game {
 public:
-  ForzaGame(RacingDashboard &dash, uint16_t port);
+  DirtGame(RacingDashboard &dash, uint16_t port);
   GameState getTelemetry() override;
   void freshDisplay(time_t time) override;
 
   inline const char *name() const override {
-    return "Forza";
+    return "DiRT Rally";
   }
 
   inline void start() override {
@@ -33,7 +33,7 @@ public:
   }
 
 private:
-  GameState forzaTelemetryParse(size_t len);
+  GameState dirtTelemetryParse(size_t len);
 
 private:
   RacingDashboard &dash_;
@@ -41,5 +41,5 @@ private:
 
   RacingState state_{};
   WiFiUDP udp_{};
-  ForzaPkt pkt_{};  // packet buffer
+  DirtPkt pkt_{};  // packet buffer
 };

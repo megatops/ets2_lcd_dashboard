@@ -47,6 +47,7 @@ private:
   void updateRpm(const RacingState *state);
 
   void printN(int x, int y);
+  void printR(int x, int y);
   void ledProgress(float load);
   void ledRedZone();
 

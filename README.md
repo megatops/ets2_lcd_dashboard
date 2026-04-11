@@ -1,10 +1,16 @@
-# ETS2 / Forza LCD Dashboard
+# LCD Dashboard for ETS2 / Forza / DiRT Rally
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/megatops/ets2_lcd_dashboard) ![GitHub License](https://img.shields.io/github/license/megatops/ets2_lcd_dashboard?logo=license) ![GitHub top language](https://img.shields.io/github/languages/top/megatops/ets2_lcd_dashboard) ![GitHub contributors](https://img.shields.io/github/contributors-anon/megatops/ets2_lcd_dashboard) ![GitHub forks](https://img.shields.io/github/forks/megatops/ets2_lcd_dashboard) ![GitHub Repo stars](https://img.shields.io/github/stars/megatops/ets2_lcd_dashboard)
 
-ETS2 / Forza LCD dashboard can be used with [ETS2 Telemetry Web Server](https://github.com/Funbit/ets2-telemetry-server) and Forza Motorsport / Horizon, made with ESP8266 / ESP32-C3. It can connect to the game via Wi-Fi, work as a wireless digital dashboard for your ETS2 / ATS trucks and Forza racing cars. Theoretically, the code should be able to port to any MCU boards with integrated Wi-Fi support (such as Raspberry Pi Pico W, other ESP32 series boards).
+LCD dashboard can be used with [ETS2 Telemetry Web Server](https://github.com/Funbit/ets2-telemetry-server), Forza Motorsport / Horizon and DiRT Rally / GRID, made with ESP8266 / ESP32-C3. It can connect to the game via Wi-Fi, work as a wireless digital dashboard for your ETS2 / ATS trucks and Forza / DiRT racing cars. Theoretically, the code should be able to port to any MCU boards with integrated Wi-Fi support (such as Raspberry Pi Pico W, other ESP32 series boards).
 
 ![photo](media/forza.jpg)
+
+Supported games:
+
+- Euro Truck Simulator 2 / American Truck Simulator with [ETS2 Telemetry Web Server](https://github.com/Funbit/ets2-telemetry-server),
+- Forza Motorsport 7 / 2023, Forza Horizon 4 / 5 on UDP port `8888`,
+- Codemasters F1 2013 / 2014, DiRT Rally 1 / 2.0, DiRT 4, GRID 2 / 2019 on UDP port `20777`.
 
 ## Display Modes
 
@@ -20,12 +26,12 @@ The dashboard has 4 display modes based on the game status:
   - Current speed, cruise control speed and speed limit (kph/mph),
   - Fuel and estimated fuel distance,
   - (Optional) LED indicators: left blinker, air pressure, brake, low beam, high beam, beacon, park brake, right blinker.
-- Forza series:
+- Forza / DiRT / GRID series:
   - RPM bar (linear and converging style),
   - Best lap time, last lap time, current lap time,
   - Current speed (kph/mph), gear, fuel level,
   - Current lap number, race position.
-  - Professional dashboard style for S+ class,
+  - Professional dashboard style for Forza S+ class,
   - (Optional) LED shift indicators.
 
 Check the videos to see how it looks in action:
@@ -120,14 +126,14 @@ constexpr bool CLOCK_12H = true;    // display ETS2 dashboard clock in 12 hour
 // Set to 10 to disable performance dashboard.
 constexpr int FORZA_PRO_CLASS = 4;
 
-// Forza: shift zone
-constexpr float FORZA_SHIFT_ZONE = 85.0;
-constexpr float FORZA_RED_ZONE = 90.0;
+// Racing: shift zone
+constexpr float RACING_SHIFT_ZONE = 85.0;
+constexpr float RACING_RED_ZONE = 90.0;
 
-// Forza: shift indicator engine load map
+// Racing: shift indicator engine load map
 constexpr float RGB_LOAD_MAP[RGB_LED_NUM]{ ... };
 
-// Forza: shift indicator color map
+// Racing: shift indicator color map
 constexpr RgbColor RGB_COLOR_MAP[RGB_LED_NUM]{ ... };
 ```
 
@@ -197,7 +203,25 @@ Here are some tested open source UDP forwarders:
 - [Sokit](https://github.com/sinpolib/sokit): With an easy to use GUI.
 - [udpfwd](https://github.com/D0x45/udpfwd): Very simple command line tool.
 
+## DiRT Rally / GRID Data Out Setup
+
+1. Navigate to `Documents\My Games\{GAME}\hardwaresettings` folder.
+
+2. Open file `hardware_settings_config.xml` in a text editor.
+
+3. Find a line that starts with: `<udp enabled=...`.
+
+4. Change the line to:
+
+   ```xml
+   <udp enabled="true" extradata="3" ip="{LCD dashboard IP}" port="20777" delay="1" />
+   ```
+
 ## Release History
+
+**2026-4-11**
+
+- Support Codemasters telemetry APIv3 (F1 2013, F1 2014, DiRT Rally, DiRT Rally 2.0, DiRT 4, GRID 2, GRID 2019).
 
 **2026-2-23**
 
@@ -253,4 +277,4 @@ Tutorial
 
 ## Disclaimer
 
-All product names, logos, and brands such as _Euro Truck Simulator_, _Forza_ are property of their respective owners. Their use in this project is for identification and reference only and does not imply any endorsement or partnership.
+All product names, logos, and brands such as _Euro Truck Simulator_, _Forza_, _Codemasters_ are property of their respective owners. Their use in this project is for identification and reference only and does not imply any endorsement or partnership.

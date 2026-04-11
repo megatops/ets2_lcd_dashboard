@@ -14,6 +14,7 @@
 #include "board.h"
 #include "config.h"
 #include "src/clock/ntp_clock.hpp"
+#include "src/game/dirt.hpp"
 #include "src/game/ets2.hpp"
 #include "src/game/forza.hpp"
 #include "src/game/game.hpp"
@@ -31,18 +32,19 @@ static Ets2Game ets2(truckDash, ETS_API);
 
 static RacingDashboard racingDash(disp);
 static ForzaGame forza(racingDash, FORZA_PORT);
+static DirtGame dirt(racingDash, DIRT_PORT);
 
-static Game *games[] = { &ets2, &forza };
+static Game *games[] = { &ets2, &forza, &dirt };
 static Controller controller(ntpClock, games, ARRAY_SIZE(games));
 
 static void serviceStart() {
   ntpClock.start();
-  forza.start();
+  controller.startGames();
 }
 
 static void serviceStop() {
   ntpClock.stop();
-  forza.stop();
+  controller.stopGames();
 }
 
 static void wifiConnect(std::function<void()> tick) {

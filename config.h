@@ -85,7 +85,7 @@ constexpr const char *EV_TRUCKS[]{
 // ETS2: fallback fuel capacity on data error (Iveco S-Way, etc.)
 constexpr double DEFAULT_TANK_SIZE = 1200;
 
-// ETS2: LED indicators map
+// Truck: LED indicators map
 enum LedSlot {
   LBLINKER,
   AIR_WARN,
@@ -99,7 +99,7 @@ enum LedSlot {
 };
 static_assert(LedSlot::SLOT_MAX <= RGB_LED_NUM, "Too many LED slots");
 
-// ETS2: LED indicator colors
+// Truck: LED indicator colors
 constexpr RgbColor
   LED_ALERT{ 128, 0, 0 },   // red, half the brightness
   LED_WARN{ 128, 128, 0 },  // yellow
@@ -113,18 +113,18 @@ constexpr RgbColor
 // Set to 10 to disable performance dashboard.
 constexpr int FORZA_PRO_CLASS = 4;
 
-// Forza: shift zone
-constexpr float FORZA_SHIFT_ZONE = 85.0;
-constexpr float FORZA_RED_ZONE = 90.0;
+// Racing: shift zone
+constexpr float RACING_SHIFT_ZONE = 85.0;
+constexpr float RACING_RED_ZONE = 90.0;
 
-// Forza: shift indicator engine load map
+// Racing: shift indicator engine load map
 constexpr float RGB_LOAD_MAP[RGB_LED_NUM]{
-  40.0, 50.0, 60.0,                    // green
-  70.0, 75.0, 80.0,                    // yellow
-  FORZA_SHIFT_ZONE, FORZA_SHIFT_ZONE,  // red (shift zone)
+  40.0, 50.0, 60.0,                      // green
+  70.0, 75.0, 80.0,                      // yellow
+  RACING_SHIFT_ZONE, RACING_SHIFT_ZONE,  // red (shift zone)
 };
 
-// Forza: shift indicator color map
+// Racing: shift indicator color map
 constexpr RgbColor RGB_COLOR_MAP[RGB_LED_NUM]{
   { 0, 255, 0 },  // green
   { 0, 255, 0 },
