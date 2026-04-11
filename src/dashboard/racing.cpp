@@ -19,89 +19,13 @@
 // L00:00.00 big LAP:00
 // B00:00.00 num E####F
 
-#include "game_forza.hpp"
-#include "../utils.hpp"
-
-static constexpr int FORZA_MAX_FAILURE = 5 * FORZA_PPS;
-static constexpr int FORZA_ACTIVE_DELAY = 1000 / FORZA_PPS;
+#include "racing.hpp"
 
 #define FMT_STOPWATCH(time) "%02d:%02d.%02d", (time) / 100 / 60, (time) / 100 % 60, (time) % 100
 #define FMT_TIMESTAMP(time) "%02d:%02d.%03d", (time) / 1000 / 60, (time) / 1000 % 60, (time) % 1000
 
-ForzaGame::ForzaGame(Display &display, uint16_t port)
-  : Game(display, FORZA_MAX_FAILURE, FORZA_ACTIVE_DELAY) {
-  port_ = port;
-}
 
-GameState ForzaGame::forzaTelemetryParse(size_t len) {
-  const ForzaSledData *sled{};
-  const ForzaDashData *dash{};
-
-  switch (len) {
-    case sizeof(ForzaMotorsportPktV1):
-      sled = &pkt_.motosportV1.sled;
-      dash = &pkt_.motosportV1.dash;
-      break;
-
-    case sizeof(ForzaMotorsportPktV2):
-      sled = &pkt_.motosportV2.sled;
-      dash = &pkt_.motosportV2.dash;
-      break;
-
-    case sizeof(ForzaHorizonPkt):
-      sled = &pkt_.horizon.sled;
-      dash = &pkt_.horizon.dash;
-      break;
-
-    default:
-      return GameState::SERVER_DOWN;
-  }
-
-  if (CLOCK_ENABLE && (sled->IsRaceOn == 0)) {
-    return GameState::READY;
-  }
-
-  // never touch state_ until we can confirm we will success, so we can display
-  // previous state on temporary failure.
-  state_ = {
-    .speed = static_cast<int>(abs(round(KmConv((double)dash->Speed * 3600 / 1000)))),
-    .gear = dash->Gear,
-    .rpmIdle = static_cast<int>(round(sled->EngineIdleRpm)),
-    .rpm = static_cast<int>(round(sled->CurrentEngineRpm)),
-    .rpmMax = static_cast<int>(round(sled->EngineMaxRpm)),
-    .fuel = static_cast<int>(dash->Fuel * 100.0),
-    .isPro = sled->CarClass >= FORZA_PRO_CLASS,
-
-    .lap = dash->LapNumber + 1,
-    .pos = dash->RacePosition,
-    .bestLap = static_cast<int>(dash->BestLap * 1000),
-    .lastLap = static_cast<int>(dash->LastLap * 1000),
-    .currLap = static_cast<int>(dash->CurrentLap * 1000),
-  };
-  return GameState::DRIVING;
-}
-
-GameState ForzaGame::getTelemetry() {
-  int len = udp_.parsePacket();
-  if (len <= 0) {
-    return GameState::SERVER_DOWN;  // no packet
-  }
-
-  if (!IsForzaPacket(len)) {
-    Serial.printf("Invalid Forza packet of size %d from %s\n", len, udp_.remoteIP().toString().c_str());
-    return GameState::SERVER_DOWN;
-  }
-
-  int n = udp_.read(pkt_.bytes, sizeof(pkt_));
-  if (n != len) {
-    Serial.printf("Failed to read Forza packet: %d of %d\n", n, len);
-    return GameState::SERVER_DOWN;
-  }
-
-  return forzaTelemetryParse(n);
-}
-
-void ForzaGame::printN(int x, int y) {
+void RacingDashboard::printN(int x, int y) {
   // use the strokes defined in LargeDigit
   disp_.setCursor(x, y);
   disp_.write(1);
@@ -113,8 +37,8 @@ void ForzaGame::printN(int x, int y) {
   disp_.write(0);
 }
 
-void ForzaGame::updateSpeedGear() {
-  auto speed = min(state_.speed, 999);
+void RacingDashboard::updateSpeedGear(const RacingState *state) {
+  auto speed = min(state->speed, 999);
   LAZY_UPDATE(speed, {
     if (isPro_) {
       dispPrintf(10, 3, "%03d", speed);
@@ -124,7 +48,7 @@ void ForzaGame::updateSpeedGear() {
     DEBUG("Update speed: %d\n", speed);
   });
 
-  auto gear = min(state_.gear, 9);
+  auto gear = min(state->gear, 9);
   LAZY_UPDATE(gear, {
     int x = isPro_ ? 10 : 17;
     int y = isPro_ ? 1 : 2;
@@ -137,9 +61,9 @@ void ForzaGame::updateSpeedGear() {
   });
 }
 
-void ForzaGame::updateLapTime() {
-  LAZY_UPDATE(state_.bestLap, {
-    auto bestTime = min(static_cast<int>(round(state_.bestLap / 10.0)), 599999);  // use the stop watch format
+void RacingDashboard::updateLapTime(const RacingState *state) {
+  LAZY_UPDATE(state->bestLap, {
+    auto bestTime = min(static_cast<int>(round(state->bestLap / 10.0)), 599999);  // use the stop watch format
     int y = isPro_ ? 3 : 1;
     disp_.setCursor(1, y);
     if (bestTime > 0) {
@@ -154,8 +78,8 @@ void ForzaGame::updateLapTime() {
     return;
   }
 
-  LAZY_UPDATE(state_.lastLap, {
-    auto lastTime = min(static_cast<int>(round(state_.lastLap / 10.0)), 599999);  // use the stop watch format
+  LAZY_UPDATE(state->lastLap, {
+    auto lastTime = min(static_cast<int>(round(state->lastLap / 10.0)), 599999);  // use the stop watch format
     disp_.setCursor(1, 2);
     if (lastTime > 0) {
       disp_.printf(FMT_STOPWATCH(lastTime));
@@ -166,9 +90,9 @@ void ForzaGame::updateLapTime() {
   });
 }
 
-void ForzaGame::updateCurrTime() {
+void RacingDashboard::updateCurrTime(const RacingState *state) {
   if (isPro_) {
-    auto currTime = min(static_cast<int>(round(state_.currLap / 10.0)), 599999);  // use the stop watch format
+    auto currTime = min(static_cast<int>(round(state->currLap / 10.0)), 599999);  // use the stop watch format
     LAZY_UPDATE(currTime, {
       disp_.setCursor(1, 1);
       if (currTime > 0) {
@@ -180,7 +104,7 @@ void ForzaGame::updateCurrTime() {
     });
 
   } else {
-    auto currTime = min(state_.currLap, 5999999);
+    auto currTime = min(state->currLap, 5999999);
     LAZY_UPDATE(currTime, {
       dispPrintf(11, 1, FMT_TIMESTAMP(currTime));
       DEBUG("Update current lap time: %d\n", currTime);
@@ -188,8 +112,8 @@ void ForzaGame::updateCurrTime() {
   }
 }
 
-void ForzaGame::updateLapPos() {
-  auto lap = min(state_.lap, 99);
+void RacingDashboard::updateLapPos(const RacingState *state) {
+  auto lap = min(state->lap, 99);
   LAZY_UPDATE(lap, {
     int x = isPro_ ? 18 : 14;
     int y = isPro_ ? 2 : 3;
@@ -197,7 +121,7 @@ void ForzaGame::updateLapPos() {
     DEBUG("Update lap: %d\n", lap);
   });
 
-  auto pos = min(state_.pos, 99);
+  auto pos = min(state->pos, 99);
   LAZY_UPDATE(pos, {
     int x = isPro_ ? 18 : 14;
     int y = isPro_ ? 1 : 2;
@@ -211,12 +135,12 @@ void ForzaGame::updateLapPos() {
   });
 }
 
-void ForzaGame::updateFuel() {
+void RacingDashboard::updateFuel(const RacingState *state) {
   if (!isPro_) {
     return;
   }
 
-  auto fuel = min(state_.fuel, 100);
+  auto fuel = min(state->fuel, 100);
   int seg = round(fuel / (100.0 / 4));
   LAZY_UPDATE(seg, {
     char bar[] = "\xA5\xA5\xA5\xA5";
@@ -228,7 +152,7 @@ void ForzaGame::updateFuel() {
   });
 }
 
-void ForzaGame::ledProgress(float load) {
+void RacingDashboard::ledProgress(float load) {
   int leds = 0;  // numbers to light up
   for (size_t i = 0; i < ARRAY_SIZE(RGB_LOAD_MAP); i++) {
     if (load < RGB_LOAD_MAP[i]) {
@@ -247,7 +171,7 @@ void ForzaGame::ledProgress(float load) {
   });
 }
 
-void ForzaGame::ledRedZone() {
+void RacingDashboard::ledRedZone() {
   if (blinkShow_) {
     disp_.ledFill(RGB_COLOR_MAP[ARRAY_SIZE(RGB_COLOR_MAP) - 1]);  // same with the last LED
     disp_.ledShow();
@@ -256,8 +180,8 @@ void ForzaGame::ledRedZone() {
   }
 }
 
-void ForzaGame::updateRpm() {
-  auto rpm = state_.rpm, rpmIdle = state_.rpmIdle, rpmMax = state_.rpmMax;
+void RacingDashboard::updateRpm(const RacingState *state) {
+  auto rpm = state->rpm, rpmIdle = state->rpmIdle, rpmMax = state->rpmMax;
 
   // calculate engine load
   rpm = (rpm < rpmIdle) ? rpmIdle : rpm;
@@ -308,7 +232,7 @@ void ForzaGame::updateRpm() {
   }
 }
 
-void ForzaGame::dashboardInit() {
+void RacingDashboard::dashboardInit() {
   if (!force_) {
     return;
   }
@@ -319,10 +243,10 @@ void ForzaGame::dashboardInit() {
   dispPrint(0, 3, isPro_ ? "B             E    F" : "          LAP:      ");
 }
 
-void ForzaGame::freshDisplay([[maybe_unused]] time_t time) {
+void RacingDashboard::fresh(void *owner, const RacingState *state) {
   // owner/style change needs a full update
-  force_ = disp_.setOwner(this) || (isPro_ != state_.isPro);
-  isPro_ = state_.isPro;
+  force_ = disp_.setOwner(owner) || (isPro_ != state->isPro);
+  isPro_ = state->isPro;
 
   constexpr int PERIOD = 3;
   blinkShow_ = (frameCnt_++ < PERIOD);
@@ -332,10 +256,10 @@ void ForzaGame::freshDisplay([[maybe_unused]] time_t time) {
   disp_.ledBrightnesslUpdate(force_, RGB_LEVEL_DAY);
 
   dashboardInit();
-  updateRpm();
-  updateSpeedGear();
-  updateCurrTime();
-  updateLapTime();
-  updateLapPos();
-  updateFuel();
+  updateRpm(state);
+  updateSpeedGear(state);
+  updateCurrTime(state);
+  updateLapTime(state);
+  updateLapPos(state);
+  updateFuel(state);
 }

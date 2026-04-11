@@ -44,8 +44,7 @@ void Display::start() {
 }
 
 void Display::backlightUpdate(bool force, int level) {
-  auto force_ = force;
-  LAZY_UPDATE(level, {
+  LAZY_EXEC(force, level, blLevel_, {
     analogWrite(lcdPwm_, level);
     DEBUG("Update backlight: %d\n", level);
   });
@@ -56,8 +55,7 @@ void Display::backlightUpdate(bool force, int level) {
 bool Display::ledBrightnesslUpdate(bool force, uint8_t level) {
   bool changed = false;
 
-  auto force_ = force;
-  LAZY_UPDATE(level, {
+  LAZY_EXEC(force, level, ledLevel_, {
     changed = true;
     rgb_.setBrightness(level);
     DEBUG("Update LED brightness: %d\n", level);

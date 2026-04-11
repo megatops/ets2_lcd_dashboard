@@ -94,37 +94,7 @@ private:
   Adafruit_NeoPixel rgb_;
 
   void *owner_{};
+
+  int blLevel_ = -1;
+  int ledLevel_ = -1;
 };
-
-class Dashboard {
-public:
-  virtual ~Dashboard() {}
-
-protected:
-  Dashboard(Display &display)
-    : disp_(display) {}
-
-  void dispPrint(int x, int y, const char *str) {
-    disp_.setCursor(x, y);
-    disp_.print(str);
-  }
-
-protected:
-  Display &disp_;
-  bool force_{};  // force update (bypass cache)
-};
-
-#define dispPrintf(x, y, fmt, ...) \
-  do { \
-    disp_.setCursor(x, y); \
-    disp_.printf(fmt, ##__VA_ARGS__); \
-  } while (0)
-
-#define LAZY_UPDATE(value, code) \
-  do { \
-    static typeof(value) cached_; \
-    if (force_ || (value) != cached_) { \
-      code; \
-      cached_ = (value); \
-    } \
-  } while (0)

@@ -12,10 +12,8 @@ static constexpr int IDLE_DELAY = 5000;  // API query interval when idle
 
 Controller *Controller::instance_ = nullptr;
 
-Controller::Controller(Display &disp, NtpClock &clock, Game **games, size_t count)
-  : disp_(disp), clock_(clock), timer_(SoftwareTimer(IDLE_DELAY, timerCb)) {
-  games_ = games;
-  gameCount_ = count;
+Controller::Controller(NtpClock &clock, Game **games, size_t count)
+  : clock_(clock), timer_(SoftwareTimer(IDLE_DELAY, timerCb)), games_(games), gameCount_(count) {
   instance_ = this;
 }
 
@@ -86,7 +84,7 @@ void Controller::realTimerCb() {
 
   if (driving_) {
     active_->freshDisplay(clock_.time());
-  } else if (!disp_.isOwnedBy(&clock_)) {
+  } else if (!clock_.inDisplay()) {
     clock_.freshDisplay();  // need to switch to clock mode (not driving, or inactive)
   }
   // otherwise let clock_tick() to update the clock disp

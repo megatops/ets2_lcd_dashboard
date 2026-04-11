@@ -11,24 +11,29 @@
 #include <WiFi.h>
 #endif
 
-#include "config.h"
 #include "board.h"
+#include "config.h"
 #include "src/clock/ntp_clock.hpp"
-#include "src/display/display.hpp"
-#include "src/game/game_ets2.hpp"
-#include "src/game/game_forza.hpp"
+#include "src/game/ets2.hpp"
+#include "src/game/forza.hpp"
 #include "src/game/game.hpp"
 #include "src/utils.hpp"
 
 static constexpr int NTP_UPDATE = 60 * 60 * 1000;  // interval to sync clock with NTP
 
 static Display disp(I2C_SDA, I2C_SCL, I2C_FREQ, LCD_LED_PWM, RGB_LED_PIN, LCD_ADDR);
-static NtpClock ntpClock(disp, NTP_SERVER, (TIME_ZONE - DST * 60) * 60, NTP_UPDATE);
-static Ets2Game ets2(disp, ETS_API);
-static ForzaGame forza(disp, FORZA_PORT);
+
+static ClockDashboard clockDash(disp);
+static NtpClock ntpClock(clockDash, NTP_SERVER, (TIME_ZONE - DST * 60) * 60, NTP_UPDATE);
+
+static TruckDashboard truckDash(disp);
+static Ets2Game ets2(truckDash, ETS_API);
+
+static RacingDashboard racingDash(disp);
+static ForzaGame forza(racingDash, FORZA_PORT);
 
 static Game *games[] = { &ets2, &forza };
-static Controller controller(disp, ntpClock, games, ARRAY_SIZE(games));
+static Controller controller(ntpClock, games, ARRAY_SIZE(games));
 
 static void serviceStart() {
   ntpClock.start();

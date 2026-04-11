@@ -10,11 +10,11 @@
 #include <Arduino.h>
 #include <NTPClient.h>
 #include <WiFiUdp.h>
-#include "../display/display.hpp"
+#include "../dashboard/clock.hpp"
 
-class NtpClock : public Dashboard {
+class NtpClock {
 public:
-  NtpClock(Display &display, const char *server, long timeOffset, unsigned long updateInterval);
+  NtpClock(ClockDashboard &dash, const char *server, long timeOffset, unsigned long updateInterval);
 
   inline void start() {
     ntp_.begin();
@@ -28,16 +28,16 @@ public:
     return ntp_.getEpochTime();
   }
 
+  inline bool inDisplay() {
+    return dash_.getDisplay().isOwnedBy(this);
+  }
+
   void initialSync();
   void tick();
   void freshDisplay();
 
 private:
-  void clockInit();
-  void updateDateTime(time_t time);
-  void noClock();
-
-private:
+  ClockDashboard &dash_;
   String server_;
   NTPClient ntp_;
   WiFiUDP udp_{};

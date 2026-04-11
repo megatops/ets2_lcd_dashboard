@@ -20,10 +20,7 @@ enum GameState {
   DRIVING,  // driving the truck
 };
 
-#define BLINK_IF(cond, msg1, msg2) ((!(cond) || blinkShow_) ? (msg1) : (msg2))
-#define BLINK(msg1, msg2) (blinkShow_ ? (msg1) : (msg2))
-
-class Game : public Dashboard {
+class Game {
 public:
   virtual ~Game() {}
   virtual const char *name() const;
@@ -35,16 +32,13 @@ public:
   const int ACTIVE_DELAY;  // data query interval in game (ms)
 
 protected:
-  explicit Game(Display &display, int maxFailure, int activeDelay)
-    : Dashboard(display), MAX_FAILURE(maxFailure), ACTIVE_DELAY(activeDelay) {}
-
-protected:
-  bool blinkShow_{};    // synchronize the blinks
+  explicit Game(int maxFailure, int activeDelay)
+    : MAX_FAILURE(maxFailure), ACTIVE_DELAY(activeDelay) {}
 };
 
 class Controller {
 public:
-  Controller(Display &disp, NtpClock &clock, Game **games, size_t count);
+  Controller(NtpClock &clock, Game **games, size_t count);
 
   inline void tick() {
     timer_.tick();
@@ -57,7 +51,6 @@ private:
   void updateState();
 
 private:
-  Display &disp_;
   NtpClock &clock_;
   SoftwareTimer timer_;
 

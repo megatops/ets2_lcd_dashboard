@@ -7,16 +7,10 @@
 
 #pragma once
 
-#include "game.hpp"
-
 #include <Arduino.h>
-#ifdef ESP8266
-#include <ESP8266HTTPClient.h>
-#else
-#include <HTTPClient.h>
-#endif
+#include "dashboard.hpp"
 
-struct EtsState {
+struct TruckState {
   // electric truck
   bool isEV;
 
@@ -48,29 +42,21 @@ struct EtsState {
   int limit;    // 0 for no limit
 };
 
-class Ets2Game : public Game {
+class TruckDashboard : public Dashboard {
 public:
-  Ets2Game(Display &display, const char *api);
-  GameState getTelemetry() override;
-  void freshDisplay(time_t time) override;
+  TruckDashboard(Display &display)
+    : Dashboard(display){};
 
-  inline const char *name() const override {
-    return "ETS2";
-  }
+  void fresh(void *owner, time_t time, const TruckState *state);
+
+public:
+  static constexpr int FPS = 2;  // must be called @ 2FPS
 
 private:
-  GameState ets2TelemetryParse(String &json);
-
   void dashboardInit();
-  void updateSpeed();
-  void updateEta();
-  void updateFuel();
-  void updateLEDs();
+  void updateSpeed(const TruckState *state);
+  void updateEta(const TruckState *state);
+  void updateFuel(const TruckState *state);
+  void updateLEDs(const TruckState *state);
   void updateClock(time_t time);
-
-private:
-  String api_;
-  HTTPClient http_{};
-  WiFiClient client_{};
-  EtsState state_{};
 };

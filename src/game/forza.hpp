@@ -11,28 +11,11 @@
 #include <WiFiUdp.h>
 #include "forza_udp.hpp"
 #include "game.hpp"
-
-struct ForzaState {
-  // car status
-  int speed;
-  int gear;
-  int rpmIdle;
-  int rpm;
-  int rpmMax;
-  int fuel;    // percentage
-  bool isPro;  // high performance car
-
-  // race
-  int lap;
-  int pos;
-  int bestLap;  // msec
-  int lastLap;  // msec
-  int currLap;  // msec
-};
+#include "../dashboard/racing.hpp"
 
 class ForzaGame : public Game {
 public:
-  ForzaGame(Display &display, uint16_t port);
+  ForzaGame(RacingDashboard &dash, uint16_t port);
   GameState getTelemetry() override;
   void freshDisplay(time_t time) override;
 
@@ -50,27 +33,13 @@ public:
   }
 
 private:
-  void dashboardInit();
-  void updateSpeedGear();
-  void updateLapTime();
-  void updateCurrTime();
-  void updateLapPos();
-  void updateFuel();
-  void updateRpm();
-
-  void printN(int x, int y);
-  void ledProgress(float load);
-  void ledRedZone();
   GameState forzaTelemetryParse(size_t len);
 
 private:
+  RacingDashboard &dash_;
   uint16_t port_{};
+
+  RacingState state_{};
   WiFiUDP udp_{};
-
-  ForzaState state_{};
-  bool isPro_{};    // performance dashboard
-  bool inRed_{};    // rpm currently in red zone
-
-  int frameCnt_{};  // count blink duration
   ForzaPkt pkt_{};  // packet buffer
 };

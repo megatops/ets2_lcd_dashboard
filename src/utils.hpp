@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <type_traits>
 #include "../config.h"
 
 #define DEBUG(...) \
@@ -19,6 +20,17 @@
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))
 #endif
+
+#define REMOVE_CVREF(T) \
+  typename std::remove_cv<typename std::remove_reference<T>::type>::type
+
+#define LAZY_EXEC(force, value, cache, code) \
+  do { \
+    if ((force) || (value) != (cache)) { \
+      code; \
+      (cache) = (value); \
+    } \
+  } while (0)
 
 static inline double KmConv(double km) {
   return SHOW_MILE ? (km / 1.61) : km;
