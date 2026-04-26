@@ -2,7 +2,7 @@
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/megatops/ets2_lcd_dashboard) ![GitHub License](https://img.shields.io/github/license/megatops/ets2_lcd_dashboard?logo=license) ![GitHub top language](https://img.shields.io/github/languages/top/megatops/ets2_lcd_dashboard) ![GitHub contributors](https://img.shields.io/github/contributors-anon/megatops/ets2_lcd_dashboard) ![GitHub forks](https://img.shields.io/github/forks/megatops/ets2_lcd_dashboard) ![GitHub Repo stars](https://img.shields.io/github/stars/megatops/ets2_lcd_dashboard)
 
-LCD dashboard can be used with [ETS2 Telemetry Web Server](https://github.com/Funbit/ets2-telemetry-server), Forza Motorsport / Horizon and DiRT Rally / GRID, made with ESP8266 / ESP32-C3. It can connect to the game via Wi-Fi, work as a wireless digital dashboard for your ETS2 / ATS trucks and Forza / DiRT racing cars. Theoretically, the code should be able to port to any MCU boards with integrated Wi-Fi support (such as Raspberry Pi Pico W, other ESP32 series boards).
+LCD dashboard supports ETS2/ATS series, Forza series, DiRT/GRID series, made with ESP8266 / ESP32-C3. It can connect to the game via Wi-Fi, work as a wireless digital dashboard for your ETS2 / ATS trucks and Forza / DiRT racing cars. Theoretically, the code should be able to port to any MCU boards with integrated Wi-Fi support (such as Raspberry Pi Pico W, other ESP32 series boards).
 
 ![photo](media/forza.jpg)
 
@@ -43,6 +43,10 @@ Check the videos to see how it looks in action:
 - Forza Horizon:
 
   [![video](https://img.youtube.com/vi/D59rC5C5DTI/0.jpg)](https://www.youtube.com/watch?v=D59rC5C5DTI)
+
+- GRID:
+
+  [![video](https://img.youtube.com/vi/Xlv8UfYPpxs/0.jpg)](https://www.youtube.com/watch?v=Xlv8UfYPpxs)
 
 ## Hardware
 
