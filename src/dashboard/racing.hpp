@@ -35,7 +35,7 @@ public:
   void fresh(void *owner, const RacingState *state);
 
 public:
-  static constexpr int FPS = 40;  // must be called @ 40FPS
+  static constexpr int FPS = 30;  // must be called @ 30FPS
 
 private:
   void dashboardInit();

@@ -14,7 +14,7 @@
 #include <cstdint>
 #include "../utils.hpp"
 
-constexpr uint16_t FORZA_PORT = 8888;  // at 60Hz
+constexpr uint16_t FORZA_PORT = 8888;  // 30/60Hz
 
 struct PACKED ForzaSledData {
   // = 1 when race is on. = 0 when in menus/race stopped

@@ -40,7 +40,7 @@ void Display::start() {
   lcd_.setCursor(0, 1);
   lcd_.print("    LCD Dashboard   ");
   lcd_.setCursor(0, 2);
-  lcd_.print(" ETS2 \xA5 Forza \xA5 DiRT");
+  lcd_.print(" Forza \xA5 DiRT \xA5 ETS2");
 }
 
 void Display::backlightUpdate(bool force, int level) {

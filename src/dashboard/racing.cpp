@@ -269,7 +269,7 @@ void RacingDashboard::fresh(void *owner, const RacingState *state) {
   force_ = disp_.setOwner(owner) || (isPro_ != state->isPro);
   isPro_ = state->isPro;
 
-  constexpr int PERIOD = 3;
+  constexpr int PERIOD = 2;
   blinkShow_ = (frameCnt_++ < PERIOD);
   frameCnt_ %= (PERIOD * 2);
 
