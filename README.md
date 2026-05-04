@@ -200,12 +200,9 @@ constexpr bool CLOCK_DIM_HOURS[24]{ ... };
 
 Refer [Forza Motorsport "Data Out" Documentation](https://support.forzamotorsport.net/hc/en-us/articles/21742934024211-Forza-Motorsport-Data-Out-Documentation) to setup the Data Out feature in Forza. Ensure to assign a static IPv4 address to the dashboard in your router (typically in the DHCP reservation settings) to receive the telemetry data packets. The default port is `8888`.
 
-If you are playing Forza on Windows, the setup will be more complicated than Xbox. The Windows version can only send data to the localhost address `127.0.0.1` (other IPs will not work). So you have to use an UDP forwarder to forward the data packets to the dashboard.
+If you are playing Forza on Windows, the setup will be more complicated than Xbox. The Windows version can only send data to the localhost address `127.0.0.1` (other IPs will not work). So you have to use my [UDP Forwarder](https://github.com/megatops/udpfwd) to forward the data packets to the dashboard.
 
-Here are some tested open source UDP forwarders:
-
-- [Sokit](https://github.com/sinpolib/sokit): With an easy to use GUI.
-- [udpfwd](https://github.com/D0x45/udpfwd): Very simple command line tool.
+![udpfwd](https://github.com/megatops/udpfwd/raw/master/resources/screenshot.png)
 
 ## DiRT Rally / GRID Data Out Setup
 
