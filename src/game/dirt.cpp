@@ -42,7 +42,7 @@ GameState DirtGame::dirtTelemetryParse(size_t len) {
     state_.bestLap = state_.lastLap;
   }
 
-  state_.isPro = true;  // there is no car class information, always use pro
+  state_.isPro = DIRT_PRO_STYLE;
 
   return GameState::DRIVING;
 }

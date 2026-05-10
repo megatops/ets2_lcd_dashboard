@@ -113,6 +113,11 @@ constexpr RgbColor
 // Set to 10 to disable performance dashboard.
 constexpr int FORZA_PRO_CLASS = 4;
 
+// DiRT: there is no car class information, we can only select one style.
+// Set to true to use performance dashboard,
+// Set to false to use normal dashboard.
+constexpr bool DIRT_PRO_STYLE = true;
+
 // Racing: shift zone
 constexpr float RACING_SHIFT_ZONE = 85.0;
 constexpr float RACING_RED_ZONE = 90.0;
