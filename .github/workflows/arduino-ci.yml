@@ -1,0 +1,50 @@
+name: Arduino ESP8266 + ESP32C3 Compile Check
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        board:
+          - esp8266:esp8266:nodemcuv2
+          - esp32:esp32:esp32c3
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Arduino CLI
+        uses: arduino/setup-arduino-cli@v1
+
+      - name: Configure Board Manager URLs
+        run: |
+          arduino-cli config init
+          arduino-cli config add board_manager.additional_urls https://arduino.esp8266.com/stable/package_esp8266com_index.json
+          arduino-cli config add board_manager.additional_urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
+
+      - name: Install ESP8266 + ESP32 Cores
+        run: |
+          arduino-cli core update-index
+          arduino-cli core install esp8266:esp8266@3.1.2
+          arduino-cli core install esp32:esp32@2.0.11
+
+
+      - name: Install required libraries
+        run: |
+          arduino-cli lib install "Adafruit NeoPixel"
+          arduino-cli lib install "ArduinoHttpClient"
+          arduino-cli lib install "ArduinoJson"
+          arduino-cli lib install "LiquidCrystal I2C"
+          arduino-cli lib install "NTPClient"
+          arduino-cli lib install "SoftwareTimer"
+          arduino-cli lib install "Time"
+
+      - name: Compile ets2_lcd_dashboard
+        run: |
+          arduino-cli compile --fqbn ${{ matrix.board }} .
