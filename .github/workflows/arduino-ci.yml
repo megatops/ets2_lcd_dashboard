@@ -34,7 +34,6 @@ jobs:
           arduino-cli core install esp8266:esp8266@3.1.2
           arduino-cli core install esp32:esp32@2.0.11
 
-
       - name: Install required libraries
         run: |
           arduino-cli lib install "Adafruit NeoPixel"
